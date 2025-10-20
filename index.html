@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kena Retail — Everything your hair needs, in one place</title>
+  <style>
+    :root{ --blue:#0b6ef6; --blue-dark:#0656c8; --white:#ffffff; --muted:#6b7280; --radius:12px; }
+    *{box-sizing:border-box}
+    body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0; color:#111}
+    header{background:linear-gradient(90deg,var(--blue) 0%, #5fb1ff 100%); color:var(--white); padding:28px 20px}
+    .container{max-width:1100px;margin:0 auto;padding:0 20px}
+    .nav{display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:10px;background:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--blue)}
+    nav a{color:rgba(255,255,255,0.95);text-decoration:none;margin-left:18px;font-weight:600}
+
+    .hero{display:grid;grid-template-columns:1fr 420px;gap:28px;align-items:center;padding:40px 0}
+    .hero h1{font-size:34px;margin:0 0 10px}
+    .hero p{margin:0 0 18px;color:rgba(255,255,255,0.95)}
+    .cta{display:flex;gap:12px}
+    .btn{background:var(--white);color:var(--blue);border:none;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer}
+    .btn-outline{background:transparent;border:2px solid rgba(255,255,255,0.14);color:var(--white)}
+
+    .card{background:var(--white);border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(11,110,246,0.12)}
+
+    main{padding:36px 0}
+    .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .products-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .product{background:#fff;border-radius:12px;padding:14px;border:1px solid #eef2ff}
+    .product img{width:100%;height:160px;object-fit:contain;border-radius:8px;background:#f8fafc}
+    .product h3{margin:10px 0 6px;font-size:16px}
+    .price{font-weight:800;color:var(--blue-dark)}
+    .order-row{display:flex;gap:8px;margin-top:10px}
+    .btn-wh{flex:1;background:#25D366;color:var(--white);border:none;padding:10px;border-radius:10px;cursor:pointer;font-weight:700}
+
+    footer{background:#f8fafc;padding:24px 0;margin-top:28px}
+    .foot-row{display:flex;justify-content:space-between;gap:20px;align-items:center}
+    .social a{margin-left:10px;text-decoration:none;color:var(--muted)}
+
+    /* responsive */
+    @media (max-width:880px){ .hero{grid-template-columns:1fr; text-align:center} .nav a{display:none} .hero-card{margin-top:18px} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo">KR</div>
+        <div>
+          <div style="font-weight:800;font-size:18px">Kena Retail</div>
+          <div style="font-size:13px;opacity:.95">Everything your hair needs, in one place</div>
+        </div>
+      </div>
+      <nav>
+        <a href="#products">Products</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+    <div class="container hero">
+      <div style="color:var(--white)">
+        <h1>Premium hair growth & care essentials</h1>
+        <p>Shop trusted products for stronger, healthier hair — curated by Kena Retail. Browse our top picks and order easily via WhatsApp.</p>
+        <div class="cta">
+          <button class="btn" onclick="scrollToSection('products')">View Products</button>
+          <button class="btn btn-outline" onclick="openWhatsApp()">Chat on WhatsApp</button>
+        </div>
+      </div>
+      <div class="card hero-card">
+        <h3 style="margin:0 0 8px">Featured product</h3>
+        <img src="kirk2.jpg" alt="Kirkland" style="width:100%;height:180px;object-fit:contain;border-radius:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+          <div>
+            <div style="font-weight:800">Kirkland Minoxidil 5% (60ml)</div>
+            <div style="color:black;font-size:20px">Combo 3 Kirkland Minoxidil and Roller</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:900;color:var(--blue-dark);">₵300</div>
+            <div style="font-size:12px;color:var(--muted)">Order via WhatsApp</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="products">
+      <div class="section-title">
+        <h2 style="margin:0">Our Products</h2>
+        <div style="color:var(--muted)">Tap a product to view or order</div>
+      </div>
+
+      <div class="products-grid">
+        <!-- Product 1 -->
+        <div class="product" onclick="openProduct(event,1)">
+          <img src="kirk1.jpg" alt="Kirkland Minoxidil">
+          <h3>Kirkland Minoxidil 5% — 60ml</h3>
+          <div class="price">₵90</div>
+          <div class="order-row">
+            <button class="btn" onclick="event.stopPropagation(); addToCart(1)">Details</button>
+            <button class="btn-wh" onclick="event.stopPropagation(); orderWhatsApp(\'+233209331644\', 'Kirkland Minoxidil 5% - 60ml')">Order on WhatsApp</button>
+          </div>
+        </div>
+
+        <!-- Product 2 -->
+        <div class="product" onclick="openProduct(event,2)">
+          <img src="c1.jpg" alt="Castor Oil">
+          <h3>Castor Oil — Net 8FL oz -240 ml</h3>
+          <div class="price">₵150</div>
+          <div class="order-row">
+            <button class="btn" onclick="event.stopPropagation(); addToCart(2)">Details</button>
+            <button class="btn-wh" onclick="event.stopPropagation(); orderWhatsApp('+233202263840', 'Castor Oil - 100ml')">Order on WhatsApp</button>
+          </div>
+        </div>
+
+        <!-- Product 3 -->
+        <div class="product" onclick="openProduct(event,3)">
+          <img src="mielle.jpg" alt="Mielle">
+          <h3>Mielle -Mint oil- Rosemary-Net 2FL oz-59 ml</h3>
+          <div class="price">₵100</div>
+          <div class="order-row">
+            <button class="btn" onclick="event.stopPropagation(); addToCart(3)">Details</button>
+            <button class="btn-wh" onclick="event.stopPropagation(); orderWhatsApp(' +233202263840', 'Mielle Hair Care Kit')">Order on WhatsApp</button>
+          </div>
+        </div>
+
+        <!-- Product 4 -->
+        <div class="product" onclick="openProduct(event,4)">
+          <img src="r2.jpg" alt="Derma Roller">
+          <h3>Derma Roller</h3>
+          <div class="price">₵60</div>
+          <div class="order-row">
+            <button class="btn" onclick="event.stopPropagation(); addToCart(4)">Details</button>
+            <button class="btn-wh" onclick="event.stopPropagation(); orderWhatsApp(+233202263840, 'Derma Roller')">Order on WhatsApp</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="about" style="margin-top:28px">
+      <div class="section-title"><h2 style="margin:0">About Kena Retail</h2></div>
+      <div class="card">
+        <p style="margin:0">Kena Retail is a local Ghanaian retailer focused on quality hair-care essentials. We curate trusted brands and make them available to our community — with easy ordering via WhatsApp and fast local delivery.Payment on delivery within areas in Accra</p>
+      </div>
+    </section>
+
+    <section id="contact" style="margin-top:28px">
+      <div class="section-title"><h2 style="margin:0">Contact & Order</h2></div>
+      <div class="card" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:800">Order on WhatsApp</div>
+          <div style="color:var(--muted);margin-top:6px">Tap the WhatsApp button on any product or use the number below to message us directly.</div>
+          <div style="margin-top:10px;font-weight:900">+233202263840</div>
+        </div>
+        <div style="margin-left:auto">
+          <button class="btn" onclick="openWhatsApp()">Message us on WhatsApp</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container foot-row">
+      <div>© <strong>Kena Retail</strong> — All rights reserved</div>
+      <div class="social">Follow us: <a href="https://www.instagram.com/kena.d.y/">Instagram</a> <a href="https://www.snapchat.com/add/ikenady">Snapchat</a></div> 
+    </div>
+  </footer>
+
+  <script>
+    // NOTE: Replace +233XXXXXXXXX in the HTML with your real WhatsApp number (include country code, no + signs in the phone param that goes into wa.me link in the function below)
+
+    function scrollToSection(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
+
+    function openWhatsApp(){
+      // Edit this number to your real one (example: 233244000000)
+      var phone = '233202263840';
+      var text = encodeURIComponent('Hi, I\'m interested in your hair products.');
+      window.open('https://wa.me/'+phone+'?text='+text, '_blank');
+    }
+
+    function orderWhatsApp(phone, product){
+      // phone should be '233...' (no + or spaces). If phones in the HTML are still placeholders, this will open an incomplete link; please edit phone values.
+      phone = phone.replace(/[^0-9]/g,'');
+      var text = encodeURIComponent('Hi, I want to order: '+product+' from Kena Retail.');
+      window.open('https://wa.me/'+phone+'?text='+text, '_blank');
+    }
+
+    function openProduct(e,id){
+      // simple product detail action (you can expand to a modal)
+      var p = ['','Kirkland Signature Minoxidil 5% Topical Solution is a fast-acting hair regrowth treatment for men. It helps stimulate hair follicles, promote thicker hair, and slow hair loss on the crown and top of the scalp. Easy to apply twice daily, it delivers proven results at an affordable price.','Castor Oil is a natural, nutrient-rich oil known for promoting hair growth, strengthening roots, and moisturizing the scalp. Packed with vitamin E and fatty acids, it helps reduce breakage, add shine, and support thicker, healthier hair.','MMielle Organics offers nourishing hair care products made with natural ingredients that strengthen, moisturize, and promote healthy growth. Trusted by many for its rich blends of oils and vitamins, Mielle helps keep hair soft, strong, and beautifully manageable','Derma Roller is a skincare and hair growth tool with tiny microneedles that gently stimulate the scalp or skin to boost collagen production and improve absorption of growth oils or serums. It helps promote thicker hair, smoother skin, and overall rejuvenation.'];
+      alert(p[id] + '\n\nTap "Order on WhatsApp" to place an order.');
+    }
+
+    function addToCart(id){
+      openProduct(null,id);
+    }
+  </script>
+</body>
+</html>
