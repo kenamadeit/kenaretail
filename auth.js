@@ -416,8 +416,8 @@ function handleLogin() {
     showSuccess();
     disableForm(document.getElementById('loginForm'));
 
-    // Redirect to products page
-    redirectAfterDelay('products.html', 1500);
+    // Redirect to dashboard page
+    redirectAfterDelay('dashboard.html', 1500);
 }
 
 // ======================================

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Growthlock - Hair Growth Progress Tracker">
+  <title>Growthlock</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+  <!-- Navigation Header -->
+  <header class="app-header">
+    <div class="header-content" style="padding-bottom:12px;">
+      <h1 class="header-title" style="font-size:38px;letter-spacing:-1px;">✨ Growthlock</h1>
+      <p class="header-subtitle" style="font-size:16px;color:#b3eaff;font-weight:600;">Track Your Hair Growth Journey</p>
+      <button onclick="window.location.href='index.html'" style="margin-top:18px;background:linear-gradient(135deg,#00d4ff,#1a7fa0);color:#fff;font-weight:700;border:none;border-radius:16px;padding:14px 38px;font-size:20px;box-shadow:0 4px 24px rgba(0,212,255,0.18);backdrop-filter:blur(8px);transition:transform 0.2s;cursor:pointer;animation:fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1);">🛒 Shop Products</button>
+    </div>
+    <div class="header-nav" style="margin-top:18px;">
+      <a href="profile.html" class="nav-link" style="background:rgba(255,255,255,0.08);padding:8px 18px;border-radius:10px;">👤 Profile</a>
+      <a href="progress-photos.html" class="nav-link" style="background:rgba(255,255,255,0.08);padding:8px 18px;border-radius:10px;">📸 Progress Photos</a>
+    </div>
+  </header>
+
+  <!-- Main App Container -->
+  <main class="app-container">
+    
+    <!-- Today's Routine Section -->
+    <section class="glass-card today-card" style="box-shadow:0 8px 40px rgba(0,212,255,0.18),0 2px 18px rgba(0,212,255,0.10);border-radius:24px;background:rgba(255,255,255,0.10);backdrop-filter:blur(18px);">
+      <div class="card-header">
+        <h2 class="card-title">Today's Routine</h2>
+        <span class="date-badge" id="today-date"></span>
+      </div>
+      
+      <div class="routine-grid">
+        <!-- Minoxidil Button (Daily) -->
+        <div class="routine-item">
+          <button class="action-btn minoxidil-btn" onclick="confirmRoutine('minoxidil', 2)">
+            <span class="btn-label">💧 Minoxidil</span>
+            <span class="btn-frequency">2x Daily</span>
+          </button>
+          <div class="routine-status" id="minoxidil-status">Not confirmed today</div>
+        </div>
+
+        <!-- Derma Roller Button (Twice Weekly) -->
+        <div class="routine-item">
+          <button class="action-btn derma-btn" onclick="confirmRoutine('derma', 2)">
+            <span class="btn-label">🔄 Derma Roller</span>
+            <span class="btn-frequency">2x Weekly</span>
+          </button>
+          <div class="routine-status" id="derma-status">Not confirmed this week</div>
+        </div>
+
+        <!-- Castor Oil Button (Custom) -->
+        <div class="routine-item">
+          <button class="action-btn castor-btn" onclick="confirmRoutine('castor', 1)">
+            <span class="btn-label">🌾 Castor Oil</span>
+            <span class="btn-frequency">Custom</span>
+          </button>
+          <div class="routine-status" id="castor-status">Not confirmed</div>
+        </div>
+
+        <!-- Rosemary Oil Button (Custom) -->
+        <div class="routine-item">
+          <button class="action-btn rosemary-btn" onclick="confirmRoutine('rosemary', 1)">
+            <span class="btn-label">🌿 Rosemary Oil</span>
+            <span class="btn-frequency">Custom</span>
+          </button>
+          <div class="routine-status" id="rosemary-status">Not confirmed</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress & Streaks Section -->
+    <section class="glass-card progress-card" style="box-shadow:0 8px 40px rgba(0,212,255,0.18),0 2px 18px rgba(0,212,255,0.10);border-radius:24px;background:rgba(255,255,255,0.10);backdrop-filter:blur(18px);">
+      <div class="card-header">
+        <h2 class="card-title">📊 Your Progress</h2>
+      </div>
+      
+      <div class="progress-container">
+        <!-- Current Streak -->
+        <div class="progress-item">
+          <div class="progress-label">Current Streak</div>
+          <div class="progress-value" id="streak-display">0</div>
+          <div class="progress-unit">days</div>
+        </div>
+
+        <!-- Weekly Consistency -->
+        <div class="progress-item">
+          <div class="progress-label">Weekly Consistency</div>
+          <div class="progress-value" id="weekly-display">0</div>
+          <div class="progress-unit">%</div>
+        </div>
+
+        <!-- Total Days Tracked -->
+        <div class="progress-item">
+          <div class="progress-label">Total Tracked</div>
+          <div class="progress-value" id="total-tracked">0</div>
+          <div class="progress-unit">days</div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-bar-container">
+        <div class="progress-bar-label">Weekly Target: 14/14 confirmations</div>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="progress-bar-fill"></div>
+        </div>
+        <div class="progress-bar-text" id="progress-bar-text">0/14</div>
+      </div>
+    </section>
+
+    <!-- Weekly Overview Section -->
+    <section class="glass-card weekly-card" style="box-shadow:0 8px 40px rgba(0,212,255,0.18),0 2px 18px rgba(0,212,255,0.10);border-radius:24px;background:rgba(255,255,255,0.10);backdrop-filter:blur(18px);">
+      <div class="card-header">
+        <h2 class="card-title">📅 This Week</h2>
+      </div>
+      
+      <div class="week-grid" id="week-grid">
+        <!-- Week days will be generated by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Custom Routines Section -->
+    <section class="glass-card routines-card" style="box-shadow:0 8px 40px rgba(0,212,255,0.18),0 2px 18px rgba(0,212,255,0.10);border-radius:24px;background:rgba(255,255,255,0.10);backdrop-filter:blur(18px);">
+      <div class="card-header">
+        <h2 class="card-title">⚙️ Custom Routines</h2>
+      </div>
+      
+      <div class="custom-routine-form">
+        <input type="text" id="routine-name" class="input-field" placeholder="Routine name (e.g., Hair Massage)">
+        <select id="routine-frequency" class="input-field">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="custom">Custom</option>
+        </select>
+        <button class="add-routine-btn" onclick="addCustomRoutine()">+ Add Routine</button>
+      </div>
+
+      <div class="custom-routines-list" id="custom-routines-list">
+        <!-- Custom routines will be displayed here -->
+      </div>
+    </section>
+
+    <!-- Reminders Section -->
+    <section class="glass-card reminders-card" style="box-shadow:0 8px 40px rgba(0,212,255,0.18),0 2px 18px rgba(0,212,255,0.10);border-radius:24px;background:rgba(255,255,255,0.10);backdrop-filter:blur(18px);">
+      <div class="card-header">
+        <h2 class="card-title">🔔 Reminders</h2>
+      </div>
+      
+      <ul class="reminder-list" id="reminder-list">
+        <!-- Reminders will be generated by JavaScript -->
+      </ul>
+    </section>
+
+    <!-- Quick Stats Section -->
+    <section class="glass-card stats-card" style="box-shadow:0 8px 40px rgba(0,212,255,0.18),0 2px 18px rgba(0,212,255,0.10);border-radius:24px;background:rgba(255,255,255,0.10);backdrop-filter:blur(18px);">
+      <div class="card-header">
+        <h2 class="card-title">📈 Quick Stats</h2>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-icon">💧</div>
+          <div class="stat-info">
+            <div class="stat-name">Minoxidil</div>
+            <div class="stat-value" id="stat-minoxidil">0 times</div>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon">🔄</div>
+          <div class="stat-info">
+            <div class="stat-name">Derma Roller</div>
+            <div class="stat-value" id="stat-derma">0 times</div>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon">🌾</div>
+          <div class="stat-info">
+            <div class="stat-name">Castor Oil</div>
+            <div class="stat-value" id="stat-castor">0 times</div>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon">🌿</div>
+          <div class="stat-info">
+            <div class="stat-name">Rosemary Oil</div>
+            <div class="stat-value" id="stat-rosemary">0 times</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Action Buttons -->
+    <section class="glass-card actions-card" style="box-shadow:0 8px 40px rgba(0,212,255,0.18),0 2px 18px rgba(0,212,255,0.10);border-radius:24px;background:rgba(255,255,255,0.10);backdrop-filter:blur(18px);">
+      <button class="action-bottom-btn export-btn" onclick="exportData()">📥 Export Progress</button>
+    </section>
+
+    <!-- Buy More Products Section -->
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div class="toast-notification" id="toast"></div>
+
+  <!-- Scripts -->
+  <script src="script.js"></script>
+  <script>
+    // Request notification permission on login
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.Notification && Notification.permission !== 'granted') {
+        setTimeout(function() {
+          Notification.requestPermission().then(function(permission) {
+            if (permission === 'granted') {
+              showToast('🔔 Notifications enabled!');
+            } else {
+              showToast('🔕 Notifications are blocked. Enable them for reminders.');
+            }
+          });
+        }, 1200);
+      }
+    });
+  </script>
+</body>
+</html>

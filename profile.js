@@ -29,9 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const currentUser = getCurrentUser();
-    document.getElementById('profileName').textContent = currentUser.fullName;
+    document.getElementById('profileName').textContent = currentUser.fullname;
     document.getElementById('profileEmail').textContent = currentUser.email;
-    document.getElementById('user-header').textContent = `Welcome, ${currentUser.fullName}`;
+    document.getElementById('user-header').textContent = `Welcome, ${currentUser.fullname}`;
 
     // stats
     document.getElementById('statStreak').textContent = calculateCurrentStreak();
