@@ -374,50 +374,25 @@ function handleLogin() {
         hasErrors = true;
     }
 
-    if (hasErrors) {
-        return;
-    }
+        if (hasErrors) {
+                return;
+        }
 
-    // Find user
-    const users = getAllUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-    if (!user) {
-        showErrorAlert('Email or password incorrect');
-        return;
-    }
-
-    // Verify password
-    const passwordHash = hashPassword(password);
-    if (user.passwordHash !== passwordHash) {
-        showErrorAlert('Email or password incorrect');
-        return;
-    }
-
-    // Successful login
-    const sessionUser = {
-        id: user.id,
-        fullname: user.fullname,
-        email: user.email,
-        loginTime: new Date().toISOString()
-    };
-
-    localStorage.setItem('growthlock_currentUser', JSON.stringify(sessionUser));
-
-    // Remember me (optional)
-    if (rememberMe) {
-        localStorage.setItem('growthlock_rememberMe', JSON.stringify({
-            email: email,
-            rememberTime: new Date().toISOString()
-        }));
-    }
-
-    // Show success message
-    showSuccess();
-    disableForm(document.getElementById('loginForm'));
-
-    // Redirect to dashboard page
-    redirectAfterDelay('dashboard.html', 1500);
+        // Set Firebase persistence based on Remember Me
+        var persistence = rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+        firebase.auth().setPersistence(persistence)
+            .then(function() {
+                return firebase.auth().signInWithEmailAndPassword(email, password);
+            })
+            .then(function(userCredential) {
+                document.getElementById('successMessage').style.display = 'block';
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1200);
+            })
+            .catch(function(error) {
+                showErrorAlert(error.message || 'Email or password incorrect');
+            });
 }
 
 // ======================================
@@ -474,75 +449,28 @@ function autoLoginIfRemembered() {
     }
 }
 
-// Auto-login on page load
-autoLoginIfRemembered();
-
-// ======================================
-// 6. DEMO DATA (Optional)
-// ======================================
-
-/**
- * Initialize with demo user (for testing)
- * Remove this in production
- */
-function initializeDemoUser() {
-    const users = getAllUsers();
-    
-    // Check if demo user already exists
-    const demoExists = users.some(u => u.email === 'demo@growthlock.com');
-    
-    if (!demoExists && users.length === 0) {
-        const demoUser = {
-            id: '1000',
-            fullname: 'Demo User',
-            email: 'demo@growthlock.com',
-            passwordHash: hashPassword('Demo1234'),
-            createdAt: new Date().toISOString(),
-            purchases: [],
-            preferences: {
-                newsletter: true,
-                notifications: true
-            }
-        };
-        
-        users.push(demoUser);
-        saveUsers(users);
-    }
-}
-
-/**
- * Initialize admin user
- */
-function initializeAdminUser() {
-    const users = getAllUsers();
-    
-    // Check if admin user already exists
-    const adminExists = users.some(u => u.email === 'kenamadeit@gmail.com' && u.isAdmin);
-    
-    if (!adminExists) {
-        const adminUser = {
-            id: Date.now().toString(),
-            fullname: 'Admin',
-            email: 'kenamadeit@gmail.com',
-            passwordHash: hashPassword('Accraisbig6@'),
-            createdAt: new Date().toISOString(),
-            isAdmin: true,
-            purchases: [],
-            preferences: {
-                newsletter: false,
-                notifications: true
-            }
-        };
-        
-        users.push(adminUser);
-        saveUsers(users);
-        console.log('✅ Admin user initialized');
-    }
-}
-
 // Initialize demo user and admin user on first load
 if (getAllUsers().length === 0) {
     initializeDemoUser();
+}
+
+function initializeAdminUser() {
+    const users = getAllUsers();
+    const hasAdmin = users.some(u => u.isAdmin);
+    if (!hasAdmin && typeof hashPassword === 'function') {
+        users.push({
+            id: Date.now().toString(),
+            fullname: 'Admin',
+            email: 'admin@growthlock.com',
+            passwordHash: hashPassword('Admin1234'),
+            isAdmin: true,
+            createdAt: new Date().toISOString(),
+            purchases: [],
+            preferences: { newsletter: false, notifications: true }
+        });
+        saveUsers(users);
+        console.log('Default admin user created: admin@growthlock.com / Admin1234');
+    }
 }
 initializeAdminUser();
 

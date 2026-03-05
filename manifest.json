@@ -1,14 +1,21 @@
 {
   "name": "GrowthLock",
   "short_name": "GrowthLock",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4285f4",
+  "description": "Track progress, shop, and manage your GrowthLock account.",
   "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#0077B6",
-  "background_color": "#0077B6",
-  "display": "standalone"
+  ]
 }
