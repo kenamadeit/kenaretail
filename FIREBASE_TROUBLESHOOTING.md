@@ -1,7 +1,7 @@
 # Firebase Troubleshooting (Social Auth)
 
 ## Scope
-Troubleshooting for Google and Apple sign-in in GrowthLock.
+Troubleshooting for Google sign-in in GrowthLock.
 
 ## Issue: Popup blocked
 Fix:
@@ -16,7 +16,6 @@ Fix:
 ## Issue: auth/invalid-credential
 Fix:
 - Re-check Firebase provider setup.
-- Verify Apple provider keys and service ID.
 - Confirm your current domain is authorized in Firebase.
 
 ## Issue: Domain not authorized
@@ -25,12 +24,11 @@ Fix:
 - Add your exact host.
 
 ## Verify Current Runtime
-- `login.html` and `register.html` should show only Google/Apple buttons.
+- `login.html` and `register.html` should show only Google button.
 - `auth.js` should manage social sign-in and local session creation.
 
 ## Escalation Checklist
 1. Verify `firebase-config.js` values.
 2. Verify Google provider enabled.
-3. Verify Apple provider enabled.
-4. Verify authorized domains.
-5. Test on a clean browser profile with popups enabled.
+3. Verify authorized domains.
+4. Test on a clean browser profile with popups enabled.

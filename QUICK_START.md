@@ -3,9 +3,8 @@
 ## 1) Configure Firebase
 1. Open Firebase Console.
 2. Enable Google provider.
-3. Enable Apple provider and complete Apple credentials.
-4. Add authorized domains (`localhost` and your production host).
-5. Confirm `firebase-config.js` values.
+3. Add authorized domains (`localhost` and your production host).
+4. Confirm `firebase-config.js` values.
 
 ## 2) Run Locally
 1. Start server:
@@ -16,13 +15,10 @@
 ## 3) Validate Flow
 1. Click `Continue with Google`.
 2. Confirm redirect to `dashboard.html`.
-3. Sign out.
-4. Click `Continue with Apple`.
-5. Confirm redirect to `dashboard.html`.
 
 ## 4) Production Check
 1. Open `https://your-domain/login.html`.
-2. Test Google and Apple sign-in.
+2. Test Google sign-in.
 3. If failure occurs, verify authorized domains and provider config.
 
 ## Notes

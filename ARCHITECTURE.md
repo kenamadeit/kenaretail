@@ -3,7 +3,7 @@
 ## Authentication Layer
 - Entry pages: `login.html`, `register.html`
 - Auth runtime: `auth.js`
-- Providers: Firebase Google OAuth and Firebase Apple OAuth
+- Provider: Firebase Google OAuth
 - Config: `firebase-config.js`
 
 ## User Session/Data Layer
@@ -17,7 +17,7 @@
 
 ## Authentication Flow
 1. User opens `login.html` or `register.html`.
-2. User chooses Google or Apple.
+2. User chooses Google.
 3. Firebase popup returns user identity.
 4. App upserts local profile in `growthlock_users`.
 5. App stores session in `growthlock_currentUser`.

@@ -5,7 +5,6 @@ GrowthLock now uses social-only authentication.
 
 Allowed providers:
 - Google Sign-In
-- Apple Sign-In
 
 Not available:
 - Email/password registration
@@ -18,7 +17,7 @@ Not available:
 - `auth.js`: binds social buttons and manages session persistence in local storage
 
 ## Account Creation Behavior
-- First sign-in with Google or Apple creates a local app profile automatically.
+- First sign-in with Google creates a local app profile automatically.
 - Returning sign-ins update local profile metadata and restore session.
 
 ## Session Behavior
@@ -28,8 +27,7 @@ Not available:
 ## Firebase Requirements
 1. Firebase project configured in `firebase-config.js`.
 2. Google provider enabled in Firebase Authentication.
-3. Apple provider enabled in Firebase Authentication.
-4. Authorized domains include your production domain and local development host.
+3. Authorized domains include your production domain and local development host.
 
 ## Redirect Behavior
 - Successful sign-in redirects to `dashboard.html`.

@@ -166,9 +166,8 @@ function resetForm(form) {
 document.addEventListener('DOMContentLoaded', () => {
     const onAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
 
-    // Social providers are available on both auth pages.
+    // Social provider is available on both auth pages.
     attachGoogleAuthHandler();
-    attachAppleAuthHandler();
     handlePendingRedirectAuthResult();
 
     // Keep signed-in users out of auth screens.
@@ -188,10 +187,7 @@ function handlePendingRedirectAuthResult() {
                 return;
             }
 
-            const providerId = result.additionalUserInfo && result.additionalUserInfo.providerId
-                ? result.additionalUserInfo.providerId
-                : '';
-            const providerName = providerId === 'apple.com' ? 'apple' : 'google';
+            const providerName = 'google';
             const emailFromCredential = result && result.credential && result.credential.email ? result.credential.email : '';
 
             finalizeSocialAuth(result.user, providerName, emailFromCredential);
@@ -213,17 +209,6 @@ function attachGoogleAuthHandler() {
 
     googleBtn.dataset.bound = 'true';
     googleBtn.addEventListener('click', handleGoogleAuth);
-}
-
-/**
- * Attach Apple auth button handler when present
- */
-function attachAppleAuthHandler() {
-    const appleBtn = document.getElementById('appleAuthBtn');
-    if (!appleBtn || appleBtn.dataset.bound === 'true') return;
-
-    appleBtn.dataset.bound = 'true';
-    appleBtn.addEventListener('click', handleAppleAuth);
 }
 
 /**
@@ -267,66 +252,6 @@ function handleGoogleAuth() {
                 return;
             }
             showErrorAlert(error.message || 'Google login failed.');
-        });
-}
-
-/**
- * Sign in or create account with Apple via Firebase
- */
-function handleAppleAuth() {
-    clearErrors();
-
-    if (!validateRegisterConsentIfRequired()) {
-        return;
-    }
-
-    if (!isFirebaseReady()) {
-        showErrorAlert('Apple login requires Firebase configuration. Add your Firebase config and enable Apple provider.');
-        return;
-    }
-
-    if (!isProtocolSupportedForFirebaseAuth()) {
-        showErrorAlert('Apple login requires running this app on http://localhost or https:// (not file://). Start a local server and open the app URL.');
-        return;
-    }
-
-    const provider = new firebase.auth.OAuthProvider('apple.com');
-    provider.addScope('email');
-    provider.addScope('name');
-    provider.setCustomParameters({ locale: 'en_US' });
-
-    firebase.auth().signInWithPopup(provider)
-        .then((result) => {
-            const fbUser = result && result.user ? result.user : null;
-            const emailFromCredential = result && result.credential && result.credential.email ? result.credential.email : '';
-            finalizeSocialAuth(fbUser, 'apple', emailFromCredential);
-        })
-        .catch((error) => {
-            if (isPopupBlockedError(error)) {
-                // Apple popup may be blocked in some browser contexts. Redirect auth is the fallback.
-                firebase.auth().signInWithRedirect(provider)
-                    .catch((redirectError) => {
-                        showErrorAlert((redirectError && redirectError.message) || 'Apple login failed.');
-                    });
-                return;
-            }
-            if (isUnsupportedAuthEnvironment(error)) {
-                showErrorAlert('Apple login is not supported in this browser context. Open the app from http://localhost:8000 or another https URL.');
-                return;
-            }
-            if (isProviderDisabledError(error)) {
-                showErrorAlert('Apple sign-in is disabled in Firebase. Enable Apple under Firebase Console > Authentication > Sign-in method and add Apple credentials.');
-                return;
-            }
-            if (isAccountExistsWithDifferentCredentialError(error)) {
-                showErrorAlert('This email is already linked to another provider. Sign in with that provider first, then link Apple in your account settings.');
-                return;
-            }
-            if (isInvalidCredentialError(error)) {
-                showErrorAlert('Apple sign-in failed due to an invalid credential response. Confirm Apple sign-in is enabled in Firebase and try again.');
-                return;
-            }
-            showErrorAlert(error.message || 'Apple login failed.');
         });
 }
 
@@ -431,18 +356,6 @@ function isProviderDisabledError(error) {
     const code = error.code || '';
     const message = (error.message || '').toLowerCase();
     return code === 'auth/operation-not-allowed' || message.includes('provider is disabled');
-}
-
-function isPopupBlockedError(error) {
-    if (!error) return false;
-    const code = error.code || '';
-    return code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request';
-}
-
-function isAccountExistsWithDifferentCredentialError(error) {
-    if (!error) return false;
-    const code = error.code || '';
-    return code === 'auth/account-exists-with-different-credential';
 }
 
 function validateRegisterConsentIfRequired() {
