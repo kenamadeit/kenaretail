@@ -120,14 +120,10 @@ async function startCamera() {
             return;
         }
 
-        // Request camera access with mobile-friendly constraints
-        const constraints = {
-            video: {
-                facingMode: { ideal: 'user' },
-                width: { ideal: 1280, max: 1920 },
-                height: { ideal: 720, max: 1080 }
-            },
-            audio: false
+        // Request camera access with mobile-friendly constraints.
+        const baseVideoConstraints = {
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 }
         };
 
         // Check browser support for camera APIs
@@ -163,11 +159,28 @@ async function startCamera() {
             return await getUserMedia(requestedConstraints);
         };
 
-        try {
-            stream = await requestStream(constraints);
-        } catch (cameraError) {
-            // Some devices reject facingMode constraints; retry with generic video.
-            stream = await requestStream({ video: true, audio: false });
+        // Some browsers ignore `ideal` and pick rear camera. Try strict user-facing first.
+        const candidateConstraints = [
+            { video: { ...baseVideoConstraints, facingMode: { exact: 'user' } }, audio: false },
+            { video: { ...baseVideoConstraints, facingMode: { ideal: 'user' } }, audio: false },
+            { video: { ...baseVideoConstraints, facingMode: 'user' }, audio: false },
+            { video: true, audio: false }
+        ];
+
+        let lastCameraError = null;
+        for (const candidate of candidateConstraints) {
+            try {
+                stream = await requestStream(candidate);
+                if (stream) {
+                    break;
+                }
+            } catch (cameraError) {
+                lastCameraError = cameraError;
+            }
+        }
+
+        if (!stream) {
+            throw lastCameraError || new Error('Could not initialize camera stream.');
         }
 
         const videoTrack = stream && stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
