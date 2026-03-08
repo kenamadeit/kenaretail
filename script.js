@@ -9,6 +9,29 @@
 // ======================================
 
 /**
+ * Resolve storage keys for the currently signed-in user.
+ * Falls back to legacy global keys for backward compatibility.
+ */
+function getTrackingStorageKeys() {
+  let user = null;
+  if (typeof getCurrentUser === "function") {
+    user = getCurrentUser();
+  }
+
+  if (user && user.id) {
+    return {
+      routinesKey: `growthlock_routines_${user.id}`,
+      customKey: `growthlock_custom_${user.id}`
+    };
+  }
+
+  return {
+    routinesKey: "growthlock_routines",
+    customKey: "growthlock_custom"
+  };
+}
+
+/**
  * Routine data structure:
  * {
  *   routineType: [
@@ -17,7 +40,9 @@
  *   ]
  * }
  */
-let routinesData = JSON.parse(localStorage.getItem("growthlock_routines")) || {
+const trackingStorageKeys = getTrackingStorageKeys();
+const legacyRoutinesData = JSON.parse(localStorage.getItem("growthlock_routines")) || null;
+let routinesData = JSON.parse(localStorage.getItem(trackingStorageKeys.routinesKey)) || legacyRoutinesData || {
   minoxidil: [],
   derma: [],
   castor: [],
@@ -32,7 +57,16 @@ let routinesData = JSON.parse(localStorage.getItem("growthlock_routines")) || {
  *   ...
  * ]
  */
-let customRoutines = JSON.parse(localStorage.getItem("growthlock_custom")) || [];
+const legacyCustomRoutinesData = JSON.parse(localStorage.getItem("growthlock_custom")) || null;
+let customRoutines = JSON.parse(localStorage.getItem(trackingStorageKeys.customKey)) || legacyCustomRoutinesData || [];
+
+// Persist migrated user-scoped data when falling back from legacy keys.
+if (trackingStorageKeys.routinesKey !== "growthlock_routines" && legacyRoutinesData && !localStorage.getItem(trackingStorageKeys.routinesKey)) {
+  localStorage.setItem(trackingStorageKeys.routinesKey, JSON.stringify(legacyRoutinesData));
+}
+if (trackingStorageKeys.customKey !== "growthlock_custom" && legacyCustomRoutinesData && !localStorage.getItem(trackingStorageKeys.customKey)) {
+  localStorage.setItem(trackingStorageKeys.customKey, JSON.stringify(legacyCustomRoutinesData));
+}
 
 // Initialize app on page load
 document.addEventListener("DOMContentLoaded", () => {
@@ -676,7 +710,7 @@ function generateReminders() {
  * Save routines data to localStorage
  */
 function saveRoutinesData() {
-  localStorage.setItem("growthlock_routines", JSON.stringify(routinesData));
+  localStorage.setItem(trackingStorageKeys.routinesKey, JSON.stringify(routinesData));
   generateReminders();
 }
 
@@ -684,7 +718,7 @@ function saveRoutinesData() {
  * Save custom routines to localStorage
  */
 function saveCustomRoutines() {
-  localStorage.setItem("growthlock_custom", JSON.stringify(customRoutines));
+  localStorage.setItem(trackingStorageKeys.customKey, JSON.stringify(customRoutines));
 }
 
 /**
@@ -701,8 +735,8 @@ function resetData() {
         custom: []
       };
       customRoutines = [];
-      localStorage.removeItem("growthlock_routines");
-      localStorage.removeItem("growthlock_custom");
+      localStorage.removeItem(trackingStorageKeys.routinesKey);
+      localStorage.removeItem(trackingStorageKeys.customKey);
       updateAllProgress();
       loadCustomRoutines();
       renderWeeklyOverview();

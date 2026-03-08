@@ -24,6 +24,11 @@ A modern, iOS 26-inspired web app for tracking hair growth routine adherence wit
 - **Reminders**: Smart reminders for incomplete routines
 - **Quick Stats**: Visual summary of routine completion
 
+### Authentication
+- **Social-Only Sign-In**: Apple and Google only
+- **No Manual Password Flow**: Email/password and password reset are not part of the active UI
+- **Firebase Auth**: OAuth popup flow with local session persistence in `growthlock_currentUser`
+
 ### Data Management
 - **localStorage Persistence**: All data saved locally, no server needed
 - **Data Export**: Export tracking data as JSON file

@@ -75,6 +75,14 @@ body {
     gap: 20px;
 }
 
+.social-auth-note {
+    margin: 0;
+    text-align: center;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.5;
+}
+
 /* ======================================
    4. FORM GROUPS & INPUTS
    ====================================== */
@@ -138,6 +146,25 @@ body {
     cursor: pointer;
     font-size: 14px;
     margin: 0;
+}
+
+.consent-checkbox {
+    align-items: flex-start;
+}
+
+.consent-checkbox label {
+    line-height: 1.45;
+}
+
+.consent-checkbox a {
+    color: #78d6ff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.consent-checkbox a:hover {
+    color: #a6e6ff;
+    text-decoration: underline;
 }
 
 /* ======================================
@@ -239,24 +266,103 @@ body {
     transform: none;
 }
 
+.auth-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 2px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.google-auth-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(66, 133, 244, 0.14));
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.google-auth-btn:hover {
+    border-color: rgba(121, 191, 255, 0.5);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(66, 133, 244, 0.24));
+    box-shadow: 0 8px 20px rgba(30, 112, 245, 0.22);
+    transform: translateY(-1px);
+}
+
+.google-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+    color: #1a73e8;
+    background: #fff;
+}
+
+.apple-auth-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: linear-gradient(135deg, rgba(35, 35, 35, 0.92), rgba(12, 12, 12, 0.96));
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.apple-auth-btn:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: linear-gradient(135deg, rgba(58, 58, 58, 0.95), rgba(20, 20, 20, 0.98));
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    transform: translateY(-1px);
+}
+
+.apple-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+    color: #0d0d0d;
+    background: #ffffff;
+}
+
 /* ======================================
    9. LINKS & FOOTER
    ====================================== */
-
-.forgot-password {
-    color: #00d4ff;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 600;
-    text-align: center;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-
-.forgot-password:hover {
-    color: #00ffff;
-    text-decoration: underline;
-}
 
 .auth-footer {
     text-align: center;
@@ -374,99 +480,3 @@ body {
     }
 }
 
-/* ======================================
-   12. FORGOT PASSWORD MODAL
-   ====================================== */
-
-.auth-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease;
-}
-
-.modal-content {
-    background: linear-gradient(135deg, #0a3d62, #0f5a8a);
-    border: 2px solid rgba(0, 212, 255, 0.3);
-    border-radius: 20px;
-    padding: 40px;
-    max-width: 450px;
-    width: 90%;
-    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
-    backdrop-filter: blur(10px);
-    animation: slideInDown 0.3s ease;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-.modal-header h2 {
-    font-size: 24px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #00d4ff, #0099ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 32px;
-    color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-    transition: color 0.3s ease;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.close-btn:hover {
-    color: #00ffff;
-}
-
-.modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.cancel-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
-    padding: 14px 20px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.cancel-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}

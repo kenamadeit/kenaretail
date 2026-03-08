@@ -8,8 +8,35 @@ let allClients = [];
 
 // Initialize admin dashboard
 document.addEventListener('DOMContentLoaded', () => {
+    setupAdminLoginHandlers();
     checkAdminAccess();
 });
+
+/**
+ * Ensure login works via button click and Enter key
+ */
+function setupAdminLoginHandlers() {
+    const loginButton = document.querySelector('#adminLoginContainer .submit-btn');
+    const emailInput = document.getElementById('adminEmail');
+    const passwordInput = document.getElementById('adminPassword');
+
+    if (loginButton) {
+        loginButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            handleAdminLogin();
+        });
+    }
+
+    const onEnterLogin = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleAdminLogin();
+        }
+    };
+
+    if (emailInput) emailInput.addEventListener('keydown', onEnterLogin);
+    if (passwordInput) passwordInput.addEventListener('keydown', onEnterLogin);
+}
 
 /**
  * Check if user is logged in as admin
@@ -22,7 +49,7 @@ function checkAdminAccess() {
         showAdminDashboard();
     } else {
         // Show login form
-        document.getElementById('adminLoginContainer').style.display = 'flex';
+        document.getElementById('adminLoginContainer').style.display = 'block';
         document.getElementById('adminDashboard').style.display = 'none';
     }
 }
@@ -106,7 +133,12 @@ function handleAdminLogin() {
  * Load and display all clients
  */
 function loadAndDisplayClients() {
-    allClients = getAllUsers().filter(u => !u.isAdmin);
+    allClients = getAllUsers()
+        .filter(u => !u.isAdmin)
+        .map(client => ({
+            ...client,
+            linkedData: getClientLinkedData(client)
+        }));
     renderClientsTable(allClients);
 }
 
@@ -129,13 +161,13 @@ function renderClientsTable(clientsToDisplay) {
     clientsToDisplay.forEach(client => {
         const createdDate = new Date(client.createdAt).toLocaleDateString();
         const purchaseCount = client.purchases ? client.purchases.length : 0;
-        const lastLogin = client.lastLogin ? new Date(client.lastLogin).toLocaleDateString() : 'Never';
         const isActive = client.lastLogin && (Date.now() - new Date(client.lastLogin).getTime()) < 7 * 24 * 60 * 60 * 1000;
         const status = isActive ? '🟢 Active' : '🔴 Inactive';
-        
-        // Get photo count
-        const photos = getClientPhotos(client.id);
-        const photoCount = photos.length;
+
+        const linkedData = client.linkedData || getClientLinkedData(client);
+        const photoCount = linkedData.photos.length;
+        const messageCount = linkedData.messages.length;
+        const progressSummary = linkedData.progress.progressLabel;
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -145,6 +177,8 @@ function renderClientsTable(clientsToDisplay) {
             <td>${purchaseCount}</td>
             <td>${status}</td>
             <td>${photoCount} photos</td>
+            <td>${messageCount}</td>
+            <td>${progressSummary}</td>
             <td>
                 <button onclick="viewClientDetails('${client.id}')">View</button>
             </td>
@@ -185,6 +219,8 @@ function viewClientDetails(clientId) {
     const client = allClients.find(c => c.id === clientId);
     if (!client) return;
 
+    const linkedData = client.linkedData || getClientLinkedData(client);
+
     // Populate modal
     document.getElementById('modalTitle').textContent = `${client.fullname} - Details`;
     document.getElementById('modalName').textContent = client.fullname;
@@ -193,6 +229,14 @@ function viewClientDetails(clientId) {
     
     const isActive = client.lastLogin && (Date.now() - new Date(client.lastLogin).getTime()) < 7 * 24 * 60 * 60 * 1000;
     document.getElementById('modalStatus').textContent = isActive ? '🟢 Active' : '🔴 Inactive';
+
+    const lastLoginText = client.lastLogin ? new Date(client.lastLogin).toLocaleString() : 'Never logged in';
+    document.getElementById('modalLastLogin').textContent = lastLoginText;
+    document.getElementById('modalMessageCount').textContent = `${linkedData.messages.length} messages`;
+    document.getElementById('modalNotificationTimes').textContent = formatNotificationTimes(linkedData.notificationTimes);
+    document.getElementById('modalProfilePicStatus').textContent = client.profilePic ? 'Uploaded' : 'Not uploaded';
+    document.getElementById('modalProgressDays').textContent = `${linkedData.progress.trackedDays} tracked days`;
+    document.getElementById('modalPhotoTimeline').textContent = linkedData.progress.photoTimeline;
 
     // Purchase history
     const purchaseHistory = document.getElementById('purchaseHistory');
@@ -214,7 +258,7 @@ function viewClientDetails(clientId) {
     }
 
     // Progress photos
-    const photos = getClientPhotos(clientId);
+    const photos = linkedData.photos;
     const photosContainer = document.getElementById('progressPhotos');
     const noPhotosMsg = document.getElementById('noPhotosMessage');
 
@@ -248,6 +292,109 @@ function viewClientDetails(clientId) {
 function getClientPhotos(clientId) {
     const photos = localStorage.getItem(`growthlock_photos_${clientId}`);
     return photos ? JSON.parse(photos) : [];
+}
+
+/**
+ * Get client messages from localStorage
+ */
+function getClientMessages(clientId) {
+    const messages = safeReadStorage('growthlock_messages', []);
+    return messages.filter(msg => msg.userId === clientId);
+}
+
+/**
+ * Get notification time settings for a client
+ */
+function getClientNotificationTimes(clientId) {
+    return safeReadStorage(`growthlock_notifications_${clientId}`, []);
+}
+
+/**
+ * Get routine data for a client.
+ * Supports both per-user and legacy global storage.
+ */
+function getClientRoutineData(clientId) {
+    const userScoped = safeReadStorage(`growthlock_routines_${clientId}`, null);
+    if (userScoped) return userScoped;
+
+    // Legacy fallback: only use the global key when there is a single client.
+    const legacyGlobal = safeReadStorage('growthlock_routines', null);
+    if (!legacyGlobal) return null;
+
+    const totalClients = getAllUsers().filter(u => !u.isAdmin).length;
+    return totalClients === 1 ? legacyGlobal : null;
+}
+
+/**
+ * Build linked data payload for a client
+ */
+function getClientLinkedData(client) {
+    const photos = getClientPhotos(client.id);
+    const messages = getClientMessages(client.id);
+    const notificationTimes = getClientNotificationTimes(client.id);
+    const routines = getClientRoutineData(client.id);
+    const progress = calculateClientProgress(photos, routines);
+
+    return {
+        photos,
+        messages,
+        notificationTimes,
+        routines,
+        progress
+    };
+}
+
+/**
+ * Calculate summary progress metrics from linked data
+ */
+function calculateClientProgress(photos, routines) {
+    const allDates = new Set();
+
+    if (routines && typeof routines === 'object') {
+        Object.values(routines).forEach(entries => {
+            if (Array.isArray(entries)) {
+                entries.forEach(entry => {
+                    if (entry && entry.date) allDates.add(entry.date);
+                });
+            }
+        });
+    }
+
+    let photoTimeline = 'Not enough photos yet';
+    if (photos.length >= 2) {
+        const sorted = [...photos].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const start = new Date(sorted[0].date);
+        const end = new Date(sorted[sorted.length - 1].date);
+        const daySpan = Math.max(1, Math.floor((end - start) / (1000 * 60 * 60 * 24)));
+        photoTimeline = `${daySpan} days (${photos.length} photos)`;
+    } else if (photos.length === 1) {
+        photoTimeline = '1 photo uploaded';
+    }
+
+    const trackedDays = allDates.size;
+    const progressLabel = trackedDays > 0 ? `${trackedDays} days tracked` : `${photos.length} photos`;
+
+    return {
+        trackedDays,
+        photoTimeline,
+        progressLabel
+    };
+}
+
+function formatNotificationTimes(times) {
+    if (!Array.isArray(times) || times.length === 0) return 'Not set';
+    const valid = times.filter(Boolean);
+    return valid.length ? valid.join(', ') : 'Not set';
+}
+
+function safeReadStorage(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (error) {
+        console.warn(`Failed to parse localStorage key: ${key}`, error);
+        return fallback;
+    }
 }
 
 /**

@@ -164,235 +164,238 @@ function resetForm(form) {
 // ======================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    const registerForm = document.getElementById('registerForm');
-    const loginForm = document.getElementById('loginForm');
+    const onAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
 
-    if (registerForm) {
-        setupRegisterForm();
-    }
+    // Social providers are available on both auth pages.
+    attachGoogleAuthHandler();
+    attachAppleAuthHandler();
 
-    if (loginForm) {
-        setupLoginForm();
-    }
-
-    // Check if user is already logged in
-    if (isLoggedIn()) {
-        // Redirect to dashboard or main page
-        if (!document.getElementById('registerForm') && !document.getElementById('loginForm')) {
-            // Already on main page
-        } else {
-            // If on auth pages and logged in, redirect to dashboard
-            if (document.getElementById('registerForm') || document.getElementById('loginForm')) {
-                // Could redirect here if needed
-            }
-        }
+    // Keep signed-in users out of auth screens.
+    if (onAuthPage && isLoggedIn()) {
+        window.location.href = 'dashboard.html';
     }
 });
 
 /**
- * Setup registration form handlers
+ * Attach Google auth button handler when present
  */
-function setupRegisterForm() {
-    const form = document.getElementById('registerForm');
-    
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        handleRegister();
-    });
+function attachGoogleAuthHandler() {
+    const googleBtn = document.getElementById('googleAuthBtn');
+    if (!googleBtn || googleBtn.dataset.bound === 'true') return;
 
-    // Real-time password validation
-    const passwordInput = document.getElementById('password');
-    if (passwordInput) {
-        passwordInput.addEventListener('input', () => {
-            clearErrors();
-        });
-    }
-
-    // Profile picture preview
-    const picInput = document.getElementById('profilePic');
-    if (picInput) {
-        picInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 5 * 1024 * 1024) {
-                    showError('profilePic-error', 'Image must be smaller than 5MB');
-                    picInput.value = '';
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    const preview = document.getElementById('picPreview');
-                    const previewImg = document.getElementById('picPreviewImg');
-                    if (preview && previewImg) {
-                        previewImg.src = evt.target.result;
-                        preview.style.display = 'block';
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
+    googleBtn.dataset.bound = 'true';
+    googleBtn.addEventListener('click', handleGoogleAuth);
 }
 
 /**
- * Handle registration submission
+ * Attach Apple auth button handler when present
  */
-function handleRegister() {
+function attachAppleAuthHandler() {
+    const appleBtn = document.getElementById('appleAuthBtn');
+    if (!appleBtn || appleBtn.dataset.bound === 'true') return;
+
+    appleBtn.dataset.bound = 'true';
+    appleBtn.addEventListener('click', handleAppleAuth);
+}
+
+/**
+ * Sign in or create account with Google via Firebase
+ */
+function handleGoogleAuth() {
     clearErrors();
-    
-    const fullname = document.getElementById('fullname').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const termsAccepted = document.getElementById('terms').checked;
-    const profilePicFile = document.getElementById('profilePic')?.files[0];
 
-    let hasErrors = false;
-
-    // Validate full name
-    if (!fullname || fullname.length < 3) {
-        showError('fullname-error', 'Name must be at least 3 characters');
-        hasErrors = true;
-    }
-
-    // Validate email
-    if (!isValidEmail(email)) {
-        showError('email-error', 'Please enter a valid email address');
-        hasErrors = true;
-    }
-
-    // Check if email already exists
-    const existingUser = getAllUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (existingUser) {
-        showError('email-error', 'Email already registered');
-        hasErrors = true;
-    }
-
-    // Validate password strength
-    if (!isValidPassword(password)) {
-        showError('password-error', 'Password must have 8+ chars, uppercase, and numbers');
-        hasErrors = true;
-    }
-
-    // Validate password confirmation
-    if (password !== confirmPassword) {
-        showError('confirmPassword-error', 'Passwords do not match');
-        hasErrors = true;
-    }
-
-    // Validate terms
-    if (!termsAccepted) {
-        showError('terms-error', 'You must accept the terms');
-        hasErrors = true;
-    }
-
-    if (hasErrors) {
+    if (!validateRegisterConsentIfRequired()) {
         return;
     }
 
-    // Handle profile picture upload
-    if (profilePicFile) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const profilePicData = e.target.result; // base64
-            createUserWithPic(fullname, email, password, profilePicData);
-        };
-        reader.readAsDataURL(profilePicFile);
-    } else {
-        createUserWithPic(fullname, email, password, null);
+    if (!isFirebaseReady()) {
+        showErrorAlert('Google login requires Firebase configuration. Add your Firebase config and enable Google provider.');
+        return;
     }
+
+    if (!isProtocolSupportedForFirebaseAuth()) {
+        showErrorAlert('Google login requires running this app on http://localhost or https:// (not file://). Start a local server and open the app URL.');
+        return;
+    }
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+            finalizeSocialAuth(result && result.user ? result.user : null, 'google');
+        })
+        .catch((error) => {
+            if (isUnsupportedAuthEnvironment(error)) {
+                showErrorAlert('Google login is not supported in this browser context. Open the app from http://localhost:8000 or another https URL.');
+                return;
+            }
+            if (isInvalidCredentialError(error)) {
+                showErrorAlert('Google sign-in failed due to an invalid credential response. Try again and make sure popups/cookies are allowed for this site.');
+                return;
+            }
+            showErrorAlert(error.message || 'Google login failed.');
+        });
 }
 
 /**
- * Create user after profile pic is processed
+ * Sign in or create account with Apple via Firebase
  */
-function createUserWithPic(fullname, email, password, profilePic) {
-    const newUser = {
-        id: Date.now().toString(),
-        fullname: fullname,
-        email: email,
-        passwordHash: hashPassword(password),
-        profilePic: profilePic,
-        createdAt: new Date().toISOString(),
-        purchases: [],
-        preferences: {
-            newsletter: false,
-            notifications: true
-        }
+function handleAppleAuth() {
+    clearErrors();
+
+    if (!validateRegisterConsentIfRequired()) {
+        return;
+    }
+
+    if (!isFirebaseReady()) {
+        showErrorAlert('Apple login requires Firebase configuration. Add your Firebase config and enable Apple provider.');
+        return;
+    }
+
+    if (!isProtocolSupportedForFirebaseAuth()) {
+        showErrorAlert('Apple login requires running this app on http://localhost or https:// (not file://). Start a local server and open the app URL.');
+        return;
+    }
+
+    const provider = new firebase.auth.OAuthProvider('apple.com');
+
+    firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+            const fbUser = result && result.user ? result.user : null;
+            const emailFromCredential = result && result.credential && result.credential.email ? result.credential.email : '';
+            finalizeSocialAuth(fbUser, 'apple', emailFromCredential);
+        })
+        .catch((error) => {
+            if (isUnsupportedAuthEnvironment(error)) {
+                showErrorAlert('Apple login is not supported in this browser context. Open the app from http://localhost:8000 or another https URL.');
+                return;
+            }
+            if (isInvalidCredentialError(error)) {
+                showErrorAlert('Apple sign-in failed due to an invalid credential response. Confirm Apple sign-in is enabled in Firebase and try again.');
+                return;
+            }
+            showErrorAlert(error.message || 'Apple login failed.');
+        });
+}
+
+function finalizeSocialAuth(firebaseUser, provider, fallbackEmail) {
+    const resolvedEmail = firebaseUser && firebaseUser.email ? firebaseUser.email : (fallbackEmail || '');
+
+    if (!resolvedEmail) {
+        showErrorAlert('Sign in failed: no account email was provided by ' + provider + '.');
+        return;
+    }
+
+    const localUser = upsertLocalSocialUser(firebaseUser, provider, resolvedEmail);
+
+    const sessionUser = {
+        id: localUser.id,
+        fullname: localUser.fullname,
+        email: localUser.email,
+        profilePic: localUser.profilePic || null,
+        isAdmin: !!localUser.isAdmin,
+        loginTime: new Date().toISOString(),
+        provider: provider
     };
 
-    // Save user
+    localStorage.setItem('growthlock_currentUser', JSON.stringify(sessionUser));
+    const successMessage = document.getElementById('successMessage');
+    if (successMessage) {
+        successMessage.style.display = 'block';
+    }
+
+    setTimeout(() => {
+        window.location.href = 'dashboard.html';
+    }, 1000);
+}
+
+function upsertLocalSocialUser(firebaseUser, provider, email) {
     const users = getAllUsers();
-    users.push(newUser);
-    saveUsers(users);
+    let localUser = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
 
-    // Show success message
-    showSuccess();
-    disableForm(document.getElementById('registerForm'));
-
-    // Redirect to login
-    redirectAfterDelay('login.html', 2000);
-}
-
-// ======================================
-// 3. LOGIN LOGIC
-// ======================================
-
-/**
- * Setup login form handlers
- */
-function setupLoginForm() {
-    const form = document.getElementById('loginForm');
-    
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        handleLogin();
-    });
-}
-
-/**
- * Handle login submission
- */
-function handleLogin() {
-    clearErrors();
-    
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const rememberMe = document.getElementById('rememberMe').checked;
-
-    let hasErrors = false;
-
-    // Validate email
-    if (!email) {
-        showError('email-error', 'Please enter your email');
-        hasErrors = true;
-    }
-
-    // Validate password
-    if (!password) {
-        showError('password-error', 'Please enter your password');
-        hasErrors = true;
-    }
-
-        if (hasErrors) {
-                return;
+    if (!localUser) {
+        localUser = {
+            id: (firebaseUser && firebaseUser.uid) ? firebaseUser.uid : Date.now().toString(),
+            fullname: (firebaseUser && firebaseUser.displayName) ? firebaseUser.displayName : email.split('@')[0],
+            email: email,
+            profilePic: (firebaseUser && firebaseUser.photoURL) ? firebaseUser.photoURL : null,
+            createdAt: new Date().toISOString(),
+            purchases: [],
+            preferences: {
+                newsletter: false,
+                notifications: true
+            },
+            authProvider: provider
+        };
+        users.push(localUser);
+    } else {
+        localUser.fullname = localUser.fullname || ((firebaseUser && firebaseUser.displayName) ? firebaseUser.displayName : localUser.email);
+        if (firebaseUser && firebaseUser.photoURL) {
+            localUser.profilePic = firebaseUser.photoURL;
         }
+        localUser.authProvider = provider;
 
-        // Set Firebase persistence based on Remember Me
-        var persistence = rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
-        firebase.auth().setPersistence(persistence)
-            .then(function() {
-                return firebase.auth().signInWithEmailAndPassword(email, password);
-            })
-            .then(function(userCredential) {
-                document.getElementById('successMessage').style.display = 'block';
-                setTimeout(function() {
-                    window.location.href = 'dashboard.html';
-                }, 1200);
-            })
-            .catch(function(error) {
-                showErrorAlert(error.message || 'Email or password incorrect');
-            });
+        const index = users.findIndex(u => u.id === localUser.id);
+        if (index !== -1) {
+            users[index] = localUser;
+        }
+    }
+
+    saveUsers(users);
+    return localUser;
+}
+
+function isFirebaseReady() {
+    if (typeof firebase === 'undefined' || !firebase.auth) return false;
+    try {
+        firebase.auth();
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+function isProtocolSupportedForFirebaseAuth() {
+    const protocol = window.location.protocol;
+    return protocol === 'http:' || protocol === 'https:' || protocol === 'chrome-extension:';
+}
+
+function isUnsupportedAuthEnvironment(error) {
+    if (!error) return false;
+    const code = error.code || '';
+    const message = error.message || '';
+    return code === 'auth/operation-not-supported-in-this-environment' || message.includes('operation is not supported in the environment');
+}
+
+function isInvalidCredentialError(error) {
+    if (!error) return false;
+    const code = error.code || '';
+    const message = (error.message || '').toLowerCase();
+    return code === 'auth/invalid-credential' || message.includes('invalid-credential');
+}
+
+function validateRegisterConsentIfRequired() {
+    const consentCheckbox = document.getElementById('registerConsent');
+    const consentError = document.getElementById('consent-error');
+
+    if (!consentCheckbox) {
+        return true;
+    }
+
+    if (consentError) {
+        consentError.textContent = '';
+    }
+
+    if (consentCheckbox.checked) {
+        return true;
+    }
+
+    if (consentError) {
+        consentError.textContent = 'Please accept Terms & Conditions and Privacy Policy to continue.';
+    }
+    showErrorAlert('You must accept Terms & Conditions and Privacy Policy before continuing.');
+    return false;
 }
 
 // ======================================
@@ -473,123 +476,3 @@ function initializeAdminUser() {
     }
 }
 initializeAdminUser();
-
-// ======================================
-// 7. FORGOT PASSWORD LOGIC
-// ======================================
-
-/**
- * Show forgot password modal
- */
-function showForgotPasswordModal(event) {
-    event.preventDefault();
-    const modal = document.getElementById('forgotPasswordModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        // Clear previous errors
-        document.getElementById('reset-email-error').textContent = '';
-        document.getElementById('new-password-error').textContent = '';
-        document.getElementById('confirm-password-error').textContent = '';
-    }
-}
-
-/**
- * Close forgot password modal
- */
-function closeForgotPasswordModal() {
-    const modal = document.getElementById('forgotPasswordModal');
-    if (modal) {
-        modal.style.display = 'none';
-        // Clear form
-        document.getElementById('resetEmail').value = '';
-        document.getElementById('newPassword').value = '';
-        document.getElementById('confirmPassword').value = '';
-        document.getElementById('reset-email-error').textContent = '';
-        document.getElementById('new-password-error').textContent = '';
-        document.getElementById('confirm-password-error').textContent = '';
-    }
-}
-
-/**
- * Handle password reset
- */
-function handlePasswordReset() {
-    const resetEmail = document.getElementById('resetEmail').value.trim();
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-
-    // Clear previous errors
-    document.getElementById('reset-email-error').textContent = '';
-    document.getElementById('new-password-error').textContent = '';
-    document.getElementById('confirm-password-error').textContent = '';
-
-    let hasErrors = false;
-
-    // Validate email
-    if (!resetEmail) {
-        document.getElementById('reset-email-error').textContent = 'Please enter your email';
-        hasErrors = true;
-    } else if (!isValidEmail(resetEmail)) {
-        document.getElementById('reset-email-error').textContent = 'Please enter a valid email';
-        hasErrors = true;
-    }
-
-    // Validate new password
-    if (!newPassword) {
-        document.getElementById('new-password-error').textContent = 'Please enter new password';
-        hasErrors = true;
-    } else if (!isValidPassword(newPassword)) {
-        document.getElementById('new-password-error').textContent = 'Password must have 8+ chars, uppercase, and numbers';
-        hasErrors = true;
-    }
-
-    // Validate password confirmation
-    if (!confirmPassword) {
-        document.getElementById('confirm-password-error').textContent = 'Please confirm password';
-        hasErrors = true;
-    } else if (newPassword !== confirmPassword) {
-        document.getElementById('confirm-password-error').textContent = 'Passwords do not match';
-        hasErrors = true;
-    }
-
-    if (hasErrors) {
-        return;
-    }
-
-    // Find user and update password
-    const users = getAllUsers();
-    const userIndex = users.findIndex(u => u.email.toLowerCase() === resetEmail.toLowerCase());
-
-    if (userIndex === -1) {
-        document.getElementById('reset-email-error').textContent = 'Email not found';
-        return;
-    }
-
-    // Update password
-    users[userIndex].passwordHash = hashPassword(newPassword);
-    users[userIndex].updatedAt = new Date().toISOString();
-    saveUsers(users);
-
-    // Show success and close modal
-    alert('✅ Password reset successfully! Please login with your new password.');
-    closeForgotPasswordModal();
-
-    // Optionally redirect to login or clear fields
-    document.getElementById('loginEmail').value = resetEmail;
-    document.getElementById('loginPassword').value = '';
-    document.getElementById('loginPassword').focus();
-}
-
-/**
- * Close modal when clicking outside
- */
-document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('forgotPasswordModal');
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeForgotPasswordModal();
-            }
-        });
-    }
-});

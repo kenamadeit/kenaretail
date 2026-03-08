@@ -6,107 +6,48 @@
     <title>Register - GrowthLock</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="auth.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body>
     <div class="container">
-        <!-- Logo/Header -->
         <div class="auth-header">
             <h1>✨ GrowthLock</h1>
-            <p class="auth-subtitle">Create Your Account</p>
+            <p class="auth-subtitle">Sign in with Apple or Google</p>
         </div>
 
-        <!-- Register Form -->
-        <form class="auth-form" id="registerForm">
-            <div class="form-group">
-                <label for="fullname">Full Name</label>
-                <input 
-                    type="text" 
-                    id="fullname" 
-                    name="fullname" 
-                    placeholder="Enter your full name"
-                    required
-                >
-                <span class="error-message" id="fullname-error"></span>
+        <div class="auth-form social-auth-card">
+            <p class="social-auth-note">No password needed. Use your Apple or Google account to continue.</p>
+
+            <div class="form-group checkbox consent-checkbox">
+                <input type="checkbox" id="registerConsent" name="registerConsent" required>
+                <label for="registerConsent">
+                    I agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a> and <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+                </label>
             </div>
+            <span class="error-message" id="consent-error"></span>
 
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="Enter your email"
-                    required
-                >
-                <span class="error-message" id="email-error"></span>
-            </div>
+            <div class="auth-divider"><span>Continue with</span></div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Create a strong password"
-                    required
-                >
-                <span class="password-requirements">
-                    ✓ At least 8 characters
-                    ✓ Include uppercase and numbers
-                </span>
-                <span class="error-message" id="password-error"></span>
-            </div>
+            <button type="button" class="google-auth-btn" id="googleAuthBtn">
+                <span class="google-badge">G</span>
+                Continue with Google
+            </button>
 
-            <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <input 
-                    type="password" 
-                    id="confirmPassword" 
-                    name="confirmPassword" 
-                    placeholder="Confirm your password"
-                    required
-                >
-                <span class="error-message" id="confirmPassword-error"></span>
-            </div>
+            <button type="button" class="apple-auth-btn" id="appleAuthBtn">
+                <span class="apple-badge">A</span>
+                Continue with Apple
+            </button>
 
-            <div class="form-group">
-                <label for="profilePic">Profile Picture (Optional)</label>
-                <input 
-                    type="file" 
-                    id="profilePic" 
-                    name="profilePic" 
-                    accept="image/*"
-                >
-                <small>Upload a profile picture (JPG, PNG, GIF - max 5MB)</small>
-                <div id="picPreview" style="margin-top: 10px; text-align: center; display: none;">
-                    <img id="picPreviewImg" style="max-width: 100px; border-radius: 50%;">
-                </div>
-                <span class="error-message" id="profilePic-error"></span>
-            </div>
-
-            <div class="form-group checkbox">
-                                <input type="checkbox" id="terms" name="terms" required>
-                                <label for="terms">
-                                    I agree to the
-                                    <a href="terms.html" target="_blank">Terms & Conditions</a>
-                                    and
-                                    <a href="privacy.html" target="_blank">Privacy Policy</a>
-                                </label>
-                                <span class="error-message" id="terms-error"></span>
-            </div>
-
-            <button type="submit" class="submit-btn">Create Account</button>
-
-            <!-- Success Message -->
             <div class="success-message" id="successMessage">
-                ✓ Account created successfully! Redirecting to login...
+                ✓ Login successful! Redirecting...
             </div>
 
-            <!-- Error Message -->
             <div class="error-alert" id="errorAlert"></div>
-        </form>
+        </div>
 
-        <!-- Login Link -->
         <div class="auth-footer">
             <p>Already have an account? <a href="login.html">Login here</a></p>
         </div>
