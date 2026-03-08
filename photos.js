@@ -5,6 +5,7 @@
 
 let currentUser = null;
 let stream = null;
+let shouldMirrorPreview = false;
 let photoGallery = [];
 let selectedMonth = 'all';
 
@@ -169,13 +170,17 @@ async function startCamera() {
             stream = await requestStream({ video: true, audio: false });
         }
 
+        const videoTrack = stream && stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
+        const trackSettings = videoTrack && videoTrack.getSettings ? videoTrack.getSettings() : null;
+        shouldMirrorPreview = !!(trackSettings && trackSettings.facingMode === 'user');
+
         const videoElement = document.getElementById('videoElement');
         if (videoElement) {
             videoElement.srcObject = stream;
             videoElement.setAttribute('playsinline', 'true');
             videoElement.muted = true;
-            // Force normal orientation so preview is not mirrored/inverted.
-            videoElement.style.transform = 'scaleX(1)';
+            // Mirror front camera preview so movement feels natural on phones.
+            videoElement.style.transform = shouldMirrorPreview ? 'scaleX(-1)' : 'scaleX(1)';
             videoElement.style.transformOrigin = 'center center';
             await videoElement.play();
         }
@@ -249,6 +254,10 @@ function capturePhoto() {
         } else {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
+        if (shouldMirrorPreview) {
+            ctx.translate(canvasElement.width, 0);
+            ctx.scale(-1, 1);
+        }
         ctx.drawImage(videoElement, 0, 0);
 
         // Display preview
@@ -284,7 +293,10 @@ function stopCamera() {
     const videoElement = document.getElementById('videoElement');
     if (videoElement) {
         videoElement.srcObject = null;
+        videoElement.style.transform = 'scaleX(1)';
     }
+
+    shouldMirrorPreview = false;
 
     // Update button states
     document.getElementById('startCameraBtn').style.display = 'inline-block';
@@ -729,12 +741,14 @@ window.addEventListener('beforeunload', () => {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
     }
+    shouldMirrorPreview = false;
 });
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && stream) {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
+        shouldMirrorPreview = false;
 
         const videoElement = document.getElementById('videoElement');
         if (videoElement) {
