@@ -1,0 +1,243 @@
+/* ======================================
+   MESSAGES - CHAT LOGIC
+   Real-time messaging system with email notifications
+   ====================================== */
+
+let currentUser = null;
+
+// EmailJS configuration - Replace with your own service
+const EMAILJS_SERVICE_ID = 'your_service_id'; // Replace with your EmailJS service ID
+const EMAILJS_TEMPLATE_ID = 'your_template_id'; // Replace with your EmailJS template ID
+const EMAILJS_PUBLIC_KEY = 'your_public_key'; // Replace with your EmailJS public key
+const ADMIN_EMAIL = 'kenamadeit@gmail.com'; // Replace with your email
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Messages page loaded');
+
+    if (!isLoggedIn()) {
+        console.log('Not logged in, redirecting to login');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    currentUser = getCurrentUser();
+    console.log('Current user:', currentUser);
+
+    if (!currentUser) {
+        console.error('Could not get current user');
+        alert('Error: Could not load user information. Please log in again.');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    document.getElementById('user-header').textContent = currentUser.fullName;
+
+    loadMessages();
+
+    // Auto-refresh messages every 2 seconds
+    setInterval(() => {
+        console.log('Auto-refreshing messages...');
+        loadMessages();
+    }, 2000);
+
+    // Enable send on Enter key (Ctrl+Enter)
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                console.log('Ctrl+Enter pressed');
+                sendMessage();
+            }
+        });
+    }
+});
+
+/**
+ * Get all messages from localStorage
+ */
+function getAllMessages() {
+    const messages = localStorage.getItem('growthlock_messages');
+    return messages ? JSON.parse(messages) : [];
+}
+
+/**
+ * Save messages to localStorage
+ */
+function saveMessages(messages) {
+    localStorage.setItem('growthlock_messages', JSON.stringify(messages));
+}
+
+/**
+ * Send a message
+ */
+function sendMessage() {
+    console.log('sendMessage() called');
+    console.log('currentUser:', currentUser);
+
+    if (!currentUser) {
+        console.error('No current user found');
+        alert('Error: User not logged in. Please refresh the page.');
+        return;
+    }
+
+    const input = document.getElementById('messageInput');
+    if (!input) {
+        console.error('Message input element not found');
+        return;
+    }
+
+    const text = input.value.trim();
+    console.log('Message text:', text);
+
+    if (!text) {
+        console.warn('Empty message');
+        showToast('Please type a message');
+        return;
+    }
+
+    const message = {
+        id: Date.now().toString(),
+        userId: currentUser.id,
+        userName: currentUser.fullName,
+        userEmail: currentUser.email,
+        type: 'user',
+        text: text,
+        timestamp: new Date().toISOString(),
+        read: false
+    };
+
+    console.log('Creating message:', message);
+
+    try {
+        const messages = getAllMessages();
+        console.log('All messages before:', messages);
+
+        messages.push(message);
+        saveMessages(messages);
+
+        console.log('All messages after save:', getAllMessages());
+
+        input.value = '';
+        loadMessages();
+        scrollToBottom();
+
+        showToast('✅ Message sent!');
+        console.log('Message saved successfully');
+
+        // Send email notification to admin
+        sendEmailToAdmin(message);
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showToast('❌ Error sending message');
+    }
+}
+
+/**
+ * Load and display all messages
+ */
+function loadMessages() {
+    console.log('loadMessages() called');
+    console.log('currentUser:', currentUser);
+
+    if (!currentUser) {
+        console.warn('No current user, cannot load messages');
+        return;
+    }
+
+    try {
+        const messages = getAllMessages();
+        console.log('All messages:', messages);
+
+        const userMessages = messages.filter(m => m.userId === currentUser.id || m.type === 'admin');
+        console.log('Filtered user messages:', userMessages);
+        
+        const list = document.getElementById('messagesList');
+        if (!list) {
+            console.error('Messages list container not found');
+            return;
+        }
+        
+        if (userMessages.length === 0) {
+            list.innerHTML = '<div class="no-messages">No messages yet. Start a conversation!</div>';
+            console.log('No messages to display');
+            return;
+        }
+
+        list.innerHTML = userMessages.map(msg => {
+            const date = new Date(msg.timestamp);
+            const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = date.toLocaleDateString('en-US');
+            
+            return `
+                <div class="message ${msg.type}">
+                    <div>
+                        <div class="message-sender">${msg.type === 'admin' ? '👨‍💼 Admin' : '👤 You'}</div>
+                        <div class="message-content">${escapeHtml(msg.text)}</div>
+                        <div class="message-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        console.log('Messages rendered on page');
+        scrollToBottom();
+    } catch (error) {
+        console.error('Error loading messages:', error);
+    }
+}
+
+/**
+ * Scroll message list to bottom
+ */
+function scrollToBottom() {
+    const list = document.getElementById('messagesList');
+    setTimeout(() => {
+        list.scrollTop = list.scrollHeight;
+    }, 100);
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Send email notification to admin
+ */
+function sendEmailToAdmin(message) {
+    // Skip if EmailJS is not configured
+    if (EMAILJS_SERVICE_ID === 'your_service_id') {
+        console.log('EmailJS not configured - message saved locally only');
+        return;
+    }
+
+    const templateParams = {
+        to_email: ADMIN_EMAIL,
+        from_name: message.userName,
+        from_email: message.userEmail,
+        message: message.text,
+        timestamp: new Date(message.timestamp).toLocaleString(),
+        user_id: message.userId
+    };
+
+    console.log('Sending email with params:', templateParams);
+
+    // Send email using EmailJS
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY)
+        .then(function(response) {
+            console.log('✅ Email sent successfully:', response);
+            showToast('Message sent to admin!');
+        }, function(error) {
+            console.error('❌ Email failed to send:', error);
+            showToast('Failed to send message to admin. Please try again.');
+
+            // Log detailed error for debugging
+            if (error.text) {
+                console.error('Error details:', error.text);
+            }
+        });
+}

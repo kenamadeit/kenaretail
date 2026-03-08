@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GrowthLock</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Logo/Header -->
+        <div class="auth-header">
+            <h1>✨ GrowthLock</h1>
+            <p class="auth-subtitle">Welcome Back</p>
+        </div>
+
+        <!-- Login Form -->
+        <form class="auth-form" id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email Address</label>
+                <input 
+                    type="email" 
+                    id="loginEmail" 
+                    name="email" 
+                    placeholder="Enter your email"
+                    required
+                >
+                <span class="error-message" id="email-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input 
+                    type="password" 
+                    id="loginPassword" 
+                    name="password" 
+                    placeholder="Enter your password"
+                    required
+                >
+                <span class="error-message" id="password-error"></span>
+            </div>
+
+            <div class="form-group checkbox">
+                <input type="checkbox" id="rememberMe" name="rememberMe">
+                <label for="rememberMe">Remember me</label>
+            </div>
+
+            <button type="submit" class="submit-btn">Login</button>
+
+            <!-- Success Message -->
+            <div class="success-message" id="successMessage">
+                ✓ Login successful! Redirecting...
+            </div>
+
+            <!-- Error Message -->
+            <div class="error-alert" id="errorAlert"></div>
+
+            <!-- Forgot Password Link -->
+            <a href="forgot-password.html" class="forgot-password">🔑 Forgot password?</a>
+        </form>
+
+        <!-- Register Link -->
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="register.html">Register here</a></p>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+</html>
