@@ -169,12 +169,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // Social providers are available on both auth pages.
     attachGoogleAuthHandler();
     attachAppleAuthHandler();
+    handlePendingRedirectAuthResult();
 
     // Keep signed-in users out of auth screens.
     if (onAuthPage && isLoggedIn()) {
         window.location.href = 'dashboard.html';
     }
 });
+
+function handlePendingRedirectAuthResult() {
+    if (!isFirebaseReady()) {
+        return;
+    }
+
+    firebase.auth().getRedirectResult()
+        .then((result) => {
+            if (!result || !result.user) {
+                return;
+            }
+
+            const providerId = result.additionalUserInfo && result.additionalUserInfo.providerId
+                ? result.additionalUserInfo.providerId
+                : '';
+            const providerName = providerId === 'apple.com' ? 'apple' : 'google';
+            const emailFromCredential = result && result.credential && result.credential.email ? result.credential.email : '';
+
+            finalizeSocialAuth(result.user, providerName, emailFromCredential);
+        })
+        .catch((error) => {
+            if (error && error.code === 'auth/no-auth-event') {
+                return;
+            }
+            showErrorAlert((error && error.message) || 'Could not complete social sign-in after redirect.');
+        });
+}
 
 /**
  * Attach Google auth button handler when present
@@ -230,6 +258,10 @@ function handleGoogleAuth() {
                 showErrorAlert('Google login is not supported in this browser context. Open the app from http://localhost:8000 or another https URL.');
                 return;
             }
+            if (isProviderDisabledError(error)) {
+                showErrorAlert('Google sign-in is disabled in Firebase. Enable Google under Firebase Console > Authentication > Sign-in method.');
+                return;
+            }
             if (isInvalidCredentialError(error)) {
                 showErrorAlert('Google sign-in failed due to an invalid credential response. Try again and make sure popups/cookies are allowed for this site.');
                 return;
@@ -259,6 +291,9 @@ function handleAppleAuth() {
     }
 
     const provider = new firebase.auth.OAuthProvider('apple.com');
+    provider.addScope('email');
+    provider.addScope('name');
+    provider.setCustomParameters({ locale: 'en_US' });
 
     firebase.auth().signInWithPopup(provider)
         .then((result) => {
@@ -267,8 +302,24 @@ function handleAppleAuth() {
             finalizeSocialAuth(fbUser, 'apple', emailFromCredential);
         })
         .catch((error) => {
+            if (isPopupBlockedError(error)) {
+                // Apple popup may be blocked in some browser contexts. Redirect auth is the fallback.
+                firebase.auth().signInWithRedirect(provider)
+                    .catch((redirectError) => {
+                        showErrorAlert((redirectError && redirectError.message) || 'Apple login failed.');
+                    });
+                return;
+            }
             if (isUnsupportedAuthEnvironment(error)) {
                 showErrorAlert('Apple login is not supported in this browser context. Open the app from http://localhost:8000 or another https URL.');
+                return;
+            }
+            if (isProviderDisabledError(error)) {
+                showErrorAlert('Apple sign-in is disabled in Firebase. Enable Apple under Firebase Console > Authentication > Sign-in method and add Apple credentials.');
+                return;
+            }
+            if (isAccountExistsWithDifferentCredentialError(error)) {
+                showErrorAlert('This email is already linked to another provider. Sign in with that provider first, then link Apple in your account settings.');
                 return;
             }
             if (isInvalidCredentialError(error)) {
@@ -373,6 +424,25 @@ function isInvalidCredentialError(error) {
     const code = error.code || '';
     const message = (error.message || '').toLowerCase();
     return code === 'auth/invalid-credential' || message.includes('invalid-credential');
+}
+
+function isProviderDisabledError(error) {
+    if (!error) return false;
+    const code = error.code || '';
+    const message = (error.message || '').toLowerCase();
+    return code === 'auth/operation-not-allowed' || message.includes('provider is disabled');
+}
+
+function isPopupBlockedError(error) {
+    if (!error) return false;
+    const code = error.code || '';
+    return code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request';
+}
+
+function isAccountExistsWithDifferentCredentialError(error) {
+    if (!error) return false;
+    const code = error.code || '';
+    return code === 'auth/account-exists-with-different-credential';
 }
 
 function validateRegisterConsentIfRequired() {
