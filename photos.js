@@ -104,6 +104,12 @@ function switchTab(e) {
 
 async function startCamera() {
     try {
+        // Reset any existing stream before requesting a new one.
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+
         // Check if we're on HTTPS or localhost
         const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const isLocalNetwork = /^192\.168\.|^10\.|^172\./.test(window.location.hostname);
@@ -116,7 +122,7 @@ async function startCamera() {
         // Request camera access with mobile-friendly constraints
         const constraints = {
             video: {
-                facingMode: 'user', // Use front camera on mobile
+                facingMode: { ideal: 'environment' },
                 width: { ideal: 1280, max: 1920 },
                 height: { ideal: 720, max: 1080 }
             },
@@ -146,27 +152,41 @@ async function startCamera() {
             return;
         }
 
-        // For older browsers, convert callback to promise
-        if (getUserMedia.length > 1) {
-            // Old callback-style API
-            stream = await new Promise((resolve, reject) => {
-                getUserMedia(constraints, resolve, reject);
-            });
-        } else {
-            // Modern promise-based API
-            stream = await getUserMedia(constraints);
+        // For older browsers, convert callback to promise.
+        const requestStream = async (requestedConstraints) => {
+            if (getUserMedia.length > 1) {
+                return await new Promise((resolve, reject) => {
+                    getUserMedia(requestedConstraints, resolve, reject);
+                });
+            }
+            return await getUserMedia(requestedConstraints);
+        };
+
+        try {
+            stream = await requestStream(constraints);
+        } catch (cameraError) {
+            // Some devices reject facingMode constraints; retry with generic video.
+            stream = await requestStream({ video: true, audio: false });
         }
 
         const videoElement = document.getElementById('videoElement');
         if (videoElement) {
             videoElement.srcObject = stream;
-            videoElement.play();
+            videoElement.setAttribute('playsinline', 'true');
+            videoElement.muted = true;
+            // Force normal orientation so preview is not mirrored/inverted.
+            videoElement.style.transform = 'scaleX(1)';
+            videoElement.style.transformOrigin = 'center center';
+            await videoElement.play();
         }
 
         // Update button states
-        document.getElementById('startCameraBtn').style.display = 'none';
-        document.getElementById('capturePhotoBtn').style.display = 'inline-block';
-        document.getElementById('stopCameraBtn').style.display = 'inline-block';
+        const startBtn = document.getElementById('startCameraBtn');
+        const captureBtn = document.getElementById('capturePhotoBtn');
+        const stopBtn = document.getElementById('stopCameraBtn');
+        if (startBtn) startBtn.style.display = 'none';
+        if (captureBtn) captureBtn.style.display = 'inline-block';
+        if (stopBtn) stopBtn.style.display = 'inline-block';
 
         showNotification('📷 Camera started! Position yourself and tap Capture.', 'success');
     } catch (error) {
@@ -212,16 +232,31 @@ function capturePhoto() {
     const previewElement = document.getElementById('cameraPreview');
 
     if (videoElement && canvasElement) {
+        if (!stream || !videoElement.videoWidth || !videoElement.videoHeight) {
+            showNotification('Camera is not ready yet. Wait a moment and try again.', 'warning');
+            return;
+        }
+
         // Set canvas dimensions
         canvasElement.width = videoElement.videoWidth;
         canvasElement.height = videoElement.videoHeight;
 
         // Draw video frame to canvas
         const ctx = canvasElement.getContext('2d');
+        // Ensure no transform is carried over when capturing the frame.
+        if (typeof ctx.resetTransform === 'function') {
+            ctx.resetTransform();
+        } else {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
         ctx.drawImage(videoElement, 0, 0);
 
         // Display preview
         canvasElement.toBlob(blob => {
+            if (!blob) {
+                showNotification('Could not capture this photo. Please try again.', 'error');
+                return;
+            }
             const reader = new FileReader();
             reader.onload = (e) => {
                 previewElement.innerHTML = `
@@ -483,7 +518,7 @@ function updateMonthFilters() {
 }
 
 function viewPhoto(index) {
-    const storagKey = `growthlock_photos_${currentUser.id}`;
+    const storageKey = `growthlock_photos_${currentUser.id}`;
     const photos = JSON.parse(localStorage.getItem(storageKey)) || [];
 
     // Apply same filter as gallery
@@ -688,3 +723,29 @@ function handleLogout() {
         window.location.href = 'index.html';
     }
 }
+
+window.addEventListener('beforeunload', () => {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+
+        const videoElement = document.getElementById('videoElement');
+        if (videoElement) {
+            videoElement.srcObject = null;
+        }
+
+        const startBtn = document.getElementById('startCameraBtn');
+        const captureBtn = document.getElementById('capturePhotoBtn');
+        const stopBtn = document.getElementById('stopCameraBtn');
+        if (startBtn) startBtn.style.display = 'inline-block';
+        if (captureBtn) captureBtn.style.display = 'none';
+        if (stopBtn) stopBtn.style.display = 'none';
+    }
+});
