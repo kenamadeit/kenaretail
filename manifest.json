@@ -1,11 +1,11 @@
 {
-  "name": "GrowthLock",
-  "short_name": "GrowthLock",
+  "name": "Kena Retail",
+  "short_name": "Kena",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4285f4",
-  "description": "Track progress, shop, and manage your GrowthLock account.",
+  "description": "Kena Retail: shop GrowthLock products and track your progress.",
   "icons": [
     {
       "src": "icon-192.png",
