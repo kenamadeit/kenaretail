@@ -124,6 +124,9 @@ function subscribeToLiveMessages() {
             loadAndDisplayClients();
             updateStatistics();
         }
+    }, (error) => {
+        console.error('Admin live message subscription failed:', error);
+        showToast('Live messages unavailable. Check Firebase Database rules/config.');
     });
 }
 

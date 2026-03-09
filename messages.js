@@ -109,6 +109,7 @@ function subscribeToLiveConversation(userId) {
         loadMessages();
     }, (error) => {
         console.error('Live subscription failed, using local fallback:', error);
+        notify('Live sync failed. Check Firebase Database rules/config.');
         loadMessages();
     });
 }
@@ -142,7 +143,7 @@ function saveMessages(messages) {
 /**
  * Send a message
  */
-function sendMessage() {
+async function sendMessage() {
     console.log('sendMessage() called');
     console.log('currentUser:', currentUser);
 
@@ -181,6 +182,11 @@ function sendMessage() {
     console.log('Creating message:', message);
 
     try {
+        // Always keep sender-side history visible immediately.
+        const messages = getAllMessages();
+        messages.push(message);
+        saveMessages(messages);
+
         if (isFirebaseDatabaseReady()) {
             const conversationRef = getConversationRef(currentUser.id);
             if (conversationRef) {
@@ -188,12 +194,8 @@ function sendMessage() {
                     ...message,
                     timestamp: new Date().toISOString()
                 };
-                conversationRef.child(message.id).set(liveRecord);
+                await conversationRef.child(message.id).set(liveRecord);
             }
-        } else {
-            const messages = getAllMessages();
-            messages.push(message);
-            saveMessages(messages);
         }
 
         input.value = '';
@@ -206,6 +208,11 @@ function sendMessage() {
         sendEmailToAdmin(message);
     } catch (error) {
         console.error('Error sending message:', error);
+        const isPermissionError = error && (error.code === 'PERMISSION_DENIED' || String(error).toLowerCase().includes('permission'));
+        if (isPermissionError) {
+            notify('Message saved locally, but live sync was blocked by Firebase rules.');
+            return;
+        }
         notify('Error sending message');
     }
 }
