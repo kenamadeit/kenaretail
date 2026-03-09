@@ -276,6 +276,8 @@ function finalizeSocialAuth(firebaseUser, provider, fallbackEmail) {
     };
 
     localStorage.setItem('growthlock_currentUser', JSON.stringify(sessionUser));
+    requestNotificationPermissionOnLogin();
+
     const successMessage = document.getElementById('successMessage');
     if (successMessage) {
         successMessage.style.display = 'block';
@@ -284,6 +286,28 @@ function finalizeSocialAuth(firebaseUser, provider, fallbackEmail) {
     setTimeout(() => {
         window.location.href = 'dashboard.html';
     }, 1000);
+}
+
+function requestNotificationPermissionOnLogin() {
+    if (typeof Notification === 'undefined') {
+        return;
+    }
+
+    const currentPermission = Notification.permission;
+    localStorage.setItem('growthlock_notification_permission', currentPermission);
+
+    if (currentPermission !== 'default') {
+        return;
+    }
+
+    Notification.requestPermission()
+        .then((permission) => {
+            localStorage.setItem('growthlock_notification_permission', permission);
+            console.log('Notification permission:', permission);
+        })
+        .catch((error) => {
+            console.warn('Notification permission request failed:', error);
+        });
 }
 
 function upsertLocalSocialUser(firebaseUser, provider, email) {
