@@ -5,6 +5,19 @@
 
 let currentUser = null;
 
+function getDisplayName(user) {
+    if (!user) return 'User';
+    return user.fullname || user.fullName || user.name || user.email || 'User';
+}
+
+function notify(message) {
+    if (typeof showToast === 'function') {
+        showToast(message);
+        return;
+    }
+    console.log(message);
+}
+
 // EmailJS configuration - Replace with your own service
 const EMAILJS_SERVICE_ID = 'your_service_id'; // Replace with your EmailJS service ID
 const EMAILJS_TEMPLATE_ID = 'your_template_id'; // Replace with your EmailJS template ID
@@ -30,7 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    document.getElementById('user-header').textContent = currentUser.fullName;
+    const userHeader = document.getElementById('user-header');
+    if (userHeader) {
+        userHeader.textContent = getDisplayName(currentUser);
+    }
 
     loadMessages();
 
@@ -91,14 +107,14 @@ function sendMessage() {
 
     if (!text) {
         console.warn('Empty message');
-        showToast('Please type a message');
+        notify('Please type a message');
         return;
     }
 
     const message = {
         id: Date.now().toString(),
         userId: currentUser.id,
-        userName: currentUser.fullName,
+        userName: getDisplayName(currentUser),
         userEmail: currentUser.email,
         type: 'user',
         text: text,
@@ -121,14 +137,14 @@ function sendMessage() {
         loadMessages();
         scrollToBottom();
 
-        showToast('✅ Message sent!');
+        notify('Message sent!');
         console.log('Message saved successfully');
 
         // Send email notification to admin
         sendEmailToAdmin(message);
     } catch (error) {
         console.error('Error sending message:', error);
-        showToast('❌ Error sending message');
+        notify('Error sending message');
     }
 }
 
@@ -230,10 +246,10 @@ function sendEmailToAdmin(message) {
     emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY)
         .then(function(response) {
             console.log('✅ Email sent successfully:', response);
-            showToast('Message sent to admin!');
+            notify('Message sent to admin!');
         }, function(error) {
             console.error('❌ Email failed to send:', error);
-            showToast('Failed to send message to admin. Please try again.');
+            notify('Failed to send message to admin. Please try again.');
 
             // Log detailed error for debugging
             if (error.text) {
