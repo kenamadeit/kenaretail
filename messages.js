@@ -4,6 +4,9 @@
    ====================================== */
 
 let currentUser = null;
+let localPollingIntervalId = null;
+
+const LIVE_MESSAGES_PATH = 'growthlock_messages_live';
 
 function getDisplayName(user) {
     if (!user) return 'User';
@@ -48,13 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userHeader.textContent = getDisplayName(currentUser);
     }
 
-    loadMessages();
-
-    // Auto-refresh messages every 2 seconds
-    setInterval(() => {
-        console.log('Auto-refreshing messages...');
-        loadMessages();
-    }, 2000);
+    initializeMessageFeed();
 
     // Enable send on Enter key (Ctrl+Enter)
     const messageInput = document.getElementById('messageInput');
@@ -67,6 +64,65 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+function initializeMessageFeed() {
+    if (isFirebaseDatabaseReady()) {
+        subscribeToLiveConversation(currentUser.id);
+        return;
+    }
+
+    // Fallback for environments without Firebase database support.
+    loadMessages();
+    localPollingIntervalId = setInterval(() => {
+        loadMessages();
+    }, 2000);
+}
+
+function isFirebaseDatabaseReady() {
+    return typeof firebase !== 'undefined' && typeof firebase.database === 'function';
+}
+
+function getConversationRef(userId) {
+    if (!isFirebaseDatabaseReady() || !userId) return null;
+    return firebase.database().ref(`${LIVE_MESSAGES_PATH}/${userId}`);
+}
+
+function subscribeToLiveConversation(userId) {
+    const conversationRef = getConversationRef(userId);
+    if (!conversationRef) {
+        loadMessages();
+        return;
+    }
+
+    conversationRef.on('value', (snapshot) => {
+        const raw = snapshot.val() || {};
+        const conversationMessages = Object.keys(raw).map((key) => {
+            const item = raw[key] || {};
+            return {
+                ...item,
+                id: item.id || key,
+                userId: item.userId || userId
+            };
+        }).sort((a, b) => getTimestampValue(a.timestamp) - getTimestampValue(b.timestamp));
+
+        mergeConversationIntoLocalCache(userId, conversationMessages);
+        loadMessages();
+    }, (error) => {
+        console.error('Live subscription failed, using local fallback:', error);
+        loadMessages();
+    });
+}
+
+function mergeConversationIntoLocalCache(userId, conversationMessages) {
+    const allMessages = getAllMessages().filter(msg => msg.userId !== userId);
+    saveMessages([...allMessages, ...conversationMessages]);
+}
+
+function getTimestampValue(timestamp) {
+    if (!timestamp) return 0;
+    const parsed = Date.parse(timestamp);
+    return Number.isNaN(parsed) ? 0 : parsed;
+}
 
 /**
  * Get all messages from localStorage
@@ -125,22 +181,28 @@ function sendMessage() {
     console.log('Creating message:', message);
 
     try {
-        const messages = getAllMessages();
-        console.log('All messages before:', messages);
-
-        messages.push(message);
-        saveMessages(messages);
-
-        console.log('All messages after save:', getAllMessages());
+        if (isFirebaseDatabaseReady()) {
+            const conversationRef = getConversationRef(currentUser.id);
+            if (conversationRef) {
+                const liveRecord = {
+                    ...message,
+                    timestamp: new Date().toISOString()
+                };
+                conversationRef.child(message.id).set(liveRecord);
+            }
+        } else {
+            const messages = getAllMessages();
+            messages.push(message);
+            saveMessages(messages);
+        }
 
         input.value = '';
         loadMessages();
         scrollToBottom();
 
         notify('Message sent!');
-        console.log('Message saved successfully');
 
-        // Send email notification to admin
+        // Optional admin email notification in addition to live sync.
         sendEmailToAdmin(message);
     } catch (error) {
         console.error('Error sending message:', error);
@@ -164,7 +226,7 @@ function loadMessages() {
         const messages = getAllMessages();
         console.log('All messages:', messages);
 
-        const userMessages = messages.filter(m => m.userId === currentUser.id || m.type === 'admin');
+        const userMessages = messages.filter(m => m.userId === currentUser.id);
         console.log('Filtered user messages:', userMessages);
         
         const list = document.getElementById('messagesList');

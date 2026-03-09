@@ -5,6 +5,10 @@
 
 let currentAdminUser = null;
 let allClients = [];
+let liveMessagesRef = null;
+let latestSeenUserMessageId = null;
+
+const LIVE_MESSAGES_PATH = 'growthlock_messages_live';
 
 // Initialize admin dashboard
 document.addEventListener('DOMContentLoaded', () => {
@@ -65,6 +69,62 @@ function showAdminDashboard() {
     
     loadAndDisplayClients();
     updateStatistics();
+    subscribeToLiveMessages();
+}
+
+function isFirebaseDatabaseReady() {
+    return typeof firebase !== 'undefined' && typeof firebase.database === 'function';
+}
+
+function getTimestampValue(timestamp) {
+    if (!timestamp) return 0;
+    const parsed = Date.parse(timestamp);
+    return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function subscribeToLiveMessages() {
+    if (!isFirebaseDatabaseReady()) {
+        return;
+    }
+
+    if (liveMessagesRef) {
+        liveMessagesRef.off();
+    }
+
+    liveMessagesRef = firebase.database().ref(LIVE_MESSAGES_PATH);
+    liveMessagesRef.on('value', (snapshot) => {
+        const raw = snapshot.val() || {};
+        const flattenedMessages = [];
+
+        Object.keys(raw).forEach((userId) => {
+            const conversation = raw[userId] || {};
+            Object.keys(conversation).forEach((messageId) => {
+                const message = conversation[messageId] || {};
+                flattenedMessages.push({
+                    ...message,
+                    id: message.id || messageId,
+                    userId: message.userId || userId
+                });
+            });
+        });
+
+        flattenedMessages.sort((a, b) => getTimestampValue(a.timestamp) - getTimestampValue(b.timestamp));
+        localStorage.setItem('growthlock_messages', JSON.stringify(flattenedMessages));
+
+        const latestUserMessage = [...flattenedMessages].reverse().find(msg => msg.type === 'user');
+        if (latestUserMessage) {
+            if (latestSeenUserMessageId && latestSeenUserMessageId !== latestUserMessage.id) {
+                const senderName = latestUserMessage.userName || latestUserMessage.userEmail || 'user';
+                showToast(`New message from ${senderName}`);
+            }
+            latestSeenUserMessageId = latestUserMessage.id;
+        }
+
+        if (document.getElementById('adminDashboard').style.display === 'block') {
+            loadAndDisplayClients();
+            updateStatistics();
+        }
+    });
 }
 
 /**
@@ -485,6 +545,10 @@ function showToast(message, duration = 3000) {
  */
 function handleAdminLogout() {
     if (confirm('Are you sure you want to logout?')) {
+        if (liveMessagesRef) {
+            liveMessagesRef.off();
+            liveMessagesRef = null;
+        }
         logout();
         showToast('✓ Logged out');
         setTimeout(() => {
