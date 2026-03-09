@@ -276,6 +276,7 @@ function finalizeSocialAuth(firebaseUser, provider, fallbackEmail) {
     };
 
     localStorage.setItem('growthlock_currentUser', JSON.stringify(sessionUser));
+    syncUserProfileToFirebase(localUser);
     requestNotificationPermissionOnLogin();
 
     const successMessage = document.getElementById('successMessage');
@@ -286,6 +287,27 @@ function finalizeSocialAuth(firebaseUser, provider, fallbackEmail) {
     setTimeout(() => {
         window.location.href = 'dashboard.html';
     }, 1000);
+}
+
+function syncUserProfileToFirebase(localUser) {
+    if (!localUser) return;
+    if (typeof firebase === 'undefined' || typeof firebase.database !== 'function') return;
+
+    const userKey = localUser.id || localUser.email;
+    if (!userKey) return;
+
+    firebase.database().ref(`growthlock_user_profiles/${userKey}`).update({
+        id: localUser.id || '',
+        fullname: localUser.fullname || '',
+        email: localUser.email || '',
+        profilePic: localUser.profilePic || null,
+        createdAt: localUser.createdAt || new Date().toISOString(),
+        lastLogin: localUser.lastLogin || new Date().toISOString(),
+        isAdmin: !!localUser.isAdmin,
+        authProvider: localUser.authProvider || 'google'
+    }).catch((error) => {
+        console.warn('Could not sync profile to Firebase:', error);
+    });
 }
 
 function requestNotificationPermissionOnLogin() {
@@ -314,13 +336,16 @@ function upsertLocalSocialUser(firebaseUser, provider, email) {
     const users = getAllUsers();
     let localUser = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
 
+    const nowIso = new Date().toISOString();
+
     if (!localUser) {
         localUser = {
             id: (firebaseUser && firebaseUser.uid) ? firebaseUser.uid : Date.now().toString(),
             fullname: (firebaseUser && firebaseUser.displayName) ? firebaseUser.displayName : email.split('@')[0],
             email: email,
             profilePic: (firebaseUser && firebaseUser.photoURL) ? firebaseUser.photoURL : null,
-            createdAt: new Date().toISOString(),
+            createdAt: nowIso,
+            lastLogin: nowIso,
             purchases: [],
             preferences: {
                 newsletter: false,
@@ -334,6 +359,7 @@ function upsertLocalSocialUser(firebaseUser, provider, email) {
         if (firebaseUser && firebaseUser.photoURL) {
             localUser.profilePic = firebaseUser.photoURL;
         }
+        localUser.lastLogin = nowIso;
         localUser.authProvider = provider;
 
         const index = users.findIndex(u => u.id === localUser.id);

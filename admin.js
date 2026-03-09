@@ -68,7 +68,6 @@ function showAdminDashboard() {
     document.getElementById('adminWelcome').textContent = `Welcome, ${currentAdminUser.fullname}!`;
     
     loadAndDisplayClients();
-    updateStatistics();
     subscribeToLiveMessages();
 }
 
@@ -122,7 +121,6 @@ function subscribeToLiveMessages() {
 
         if (document.getElementById('adminDashboard').style.display === 'block') {
             loadAndDisplayClients();
-            updateStatistics();
         }
     }, (error) => {
         console.error('Admin live message subscription failed:', error);
@@ -195,14 +193,84 @@ function handleAdminLogin() {
 /**
  * Load and display all clients
  */
-function loadAndDisplayClients() {
-    allClients = getAllUsers()
-        .filter(u => !u.isAdmin)
-        .map(client => ({
-            ...client,
-            linkedData: getClientLinkedData(client)
-        }));
+async function loadAndDisplayClients() {
+    const localClients = getAllUsers().filter(u => !u.isAdmin);
+    const remoteClients = await fetchRemoteClientProfiles();
+    const mergedClients = mergeClients(localClients, remoteClients);
+
+    allClients = mergedClients.map(client => ({
+        ...client,
+        linkedData: getClientLinkedData(client)
+    }));
+
     renderClientsTable(allClients);
+    updateStatistics();
+}
+
+async function fetchRemoteClientProfiles() {
+    if (!isFirebaseDatabaseReady()) return [];
+
+    try {
+        const snapshot = await firebase.database().ref('growthlock_user_profiles').once('value');
+        const raw = snapshot.val() || {};
+
+        return Object.keys(raw)
+            .map((key) => {
+                const profile = raw[key] || {};
+                return {
+                    id: profile.id || key,
+                    fullname: profile.fullname || profile.email || 'User',
+                    email: profile.email || '',
+                    profilePic: profile.profilePic || null,
+                    createdAt: profile.createdAt || null,
+                    lastLogin: profile.lastLogin || null,
+                    isAdmin: !!profile.isAdmin,
+                    purchases: []
+                };
+            })
+            .filter(profile => !profile.isAdmin);
+    } catch (error) {
+        console.warn('Could not load remote client profiles:', error);
+        return [];
+    }
+}
+
+function mergeClients(localClients, remoteClients) {
+    const mergedByIdentity = new Map();
+
+    localClients.forEach((client) => {
+        const idKey = client.id ? `id:${client.id}` : null;
+        const emailKey = client.email ? `email:${client.email.toLowerCase()}` : null;
+        const key = idKey || emailKey;
+        if (key) mergedByIdentity.set(key, { ...client });
+    });
+
+    remoteClients.forEach((client) => {
+        const idKey = client.id ? `id:${client.id}` : null;
+        const emailKey = client.email ? `email:${client.email.toLowerCase()}` : null;
+        const existing = (idKey && mergedByIdentity.get(idKey)) || (emailKey && mergedByIdentity.get(emailKey));
+
+        if (existing) {
+            const merged = {
+                ...existing,
+                ...client,
+                purchases: existing.purchases || []
+            };
+            if (idKey) mergedByIdentity.set(idKey, merged);
+            if (emailKey) mergedByIdentity.set(emailKey, merged);
+        } else {
+            const key = idKey || emailKey;
+            if (key) mergedByIdentity.set(key, { ...client });
+        }
+    });
+
+    const uniqueClients = new Map();
+    mergedByIdentity.forEach((client) => {
+        const uniqueKey = client.id || client.email || `${Math.random()}`;
+        uniqueClients.set(uniqueKey, client);
+    });
+
+    return Array.from(uniqueClients.values());
 }
 
 /**
@@ -544,8 +612,7 @@ function closeClientModal() {
  * Update statistics
  */
 function updateStatistics() {
-    const users = getAllUsers();
-    const clients = users.filter(u => !u.isAdmin);
+    const clients = Array.isArray(allClients) ? allClients : [];
 
     // Total clients
     document.getElementById('totalClients').textContent = clients.length;
