@@ -301,6 +301,40 @@ function viewClientDetails(clientId) {
     document.getElementById('modalProgressDays').textContent = `${linkedData.progress.trackedDays} tracked days`;
     document.getElementById('modalPhotoTimeline').textContent = linkedData.progress.photoTimeline;
 
+    // Profile picture preview
+    const modalProfilePic = document.getElementById('modalProfilePic');
+    if (modalProfilePic) {
+        const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%230a3d62' width='100' height='100'/%3E%3Ccircle cx='50' cy='35' r='18' fill='%23d9f7ff'/%3E%3Cpath d='M18 92c8-18 24-28 32-28s24 10 32 28' fill='%23d9f7ff'/%3E%3C/svg%3E";
+        modalProfilePic.src = client.profilePic || fallbackAvatar;
+    }
+
+    // Client message thread
+    const messagesThread = document.getElementById('clientMessagesThread');
+    const noMessagesMessage = document.getElementById('noClientMessagesMessage');
+    if (messagesThread && noMessagesMessage) {
+        const messages = [...(linkedData.messages || [])].sort((a, b) => getTimestampValue(a.timestamp) - getTimestampValue(b.timestamp));
+        messagesThread.innerHTML = '';
+
+        if (!messages.length) {
+            noMessagesMessage.style.display = 'block';
+        } else {
+            noMessagesMessage.style.display = 'none';
+            messages.forEach((message) => {
+                const messageItem = document.createElement('div');
+                const type = message.type === 'admin' ? 'admin' : 'user';
+                const sender = type === 'admin' ? 'Admin' : (message.userName || client.fullname || 'User');
+                const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleString() : 'Unknown time';
+
+                messageItem.className = `client-message-item ${type}`;
+                messageItem.innerHTML = `
+                    <div class="client-message-meta">${sender} • ${timestamp}</div>
+                    <div class="client-message-text">${escapeHtml(message.text || '')}</div>
+                `;
+                messagesThread.appendChild(messageItem);
+            });
+        }
+    }
+
     // Purchase history
     const purchaseHistory = document.getElementById('purchaseHistory');
     purchaseHistory.innerHTML = '';
@@ -458,6 +492,15 @@ function safeReadStorage(key, fallback) {
         console.warn(`Failed to parse localStorage key: ${key}`, error);
         return fallback;
     }
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 /**

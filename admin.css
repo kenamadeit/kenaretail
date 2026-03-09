@@ -434,6 +434,66 @@
     padding: 10px;
 }
 
+.profile-picture-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+#modalProfilePic {
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(0, 212, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+#clientMessagesThread {
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.client-message-item {
+    border-radius: 9px;
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.client-message-item.user {
+    background: rgba(0, 212, 255, 0.14);
+    border-left: 3px solid rgba(0, 212, 255, 0.8);
+}
+
+.client-message-item.admin {
+    background: rgba(76, 175, 80, 0.14);
+    border-left: 3px solid rgba(76, 175, 80, 0.85);
+}
+
+.client-message-meta {
+    font-size: 11px;
+    color: rgba(225, 245, 255, 0.72);
+    margin-bottom: 4px;
+}
+
+.client-message-text {
+    color: rgba(242, 252, 255, 0.96);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+#noClientMessagesMessage {
+    margin-top: 10px;
+    text-align: center;
+    color: rgba(225, 245, 255, 0.66);
+}
+
 .purchase-item {
     border-left: 3px solid #00d4ff;
     background: rgba(0, 212, 255, 0.1);
