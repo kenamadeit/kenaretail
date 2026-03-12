@@ -493,19 +493,18 @@ if (getAllUsers().length === 0) {
 function initializeAdminUser() {
     const users = getAllUsers();
     const hasAdmin = users.some(u => u.isAdmin);
-    if (!hasAdmin && typeof hashPassword === 'function') {
+    if (!hasAdmin) {
         users.push({
             id: Date.now().toString(),
             fullname: 'Admin',
             email: 'admin@growthlock.com',
-            passwordHash: hashPassword('Admin1234'),
             isAdmin: true,
             createdAt: new Date().toISOString(),
             purchases: [],
             preferences: { newsletter: false, notifications: true }
         });
         saveUsers(users);
-        console.log('Default admin user created: admin@growthlock.com / Admin1234');
+        console.log('Default admin user seeded: admin@growthlock.com (Google login only)');
     }
 }
 initializeAdminUser();

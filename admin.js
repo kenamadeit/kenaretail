@@ -17,29 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Ensure login works via button click and Enter key
+ * Ensure Google login button is wired up
  */
 function setupAdminLoginHandlers() {
-    const loginButton = document.querySelector('#adminLoginContainer .submit-btn');
-    const emailInput = document.getElementById('adminEmail');
-    const passwordInput = document.getElementById('adminPassword');
-
-    if (loginButton) {
-        loginButton.addEventListener('click', (event) => {
+    const googleBtn = document.getElementById('adminGoogleLoginBtn');
+    if (googleBtn) {
+        googleBtn.addEventListener('click', (event) => {
             event.preventDefault();
-            handleAdminLogin();
+            handleAdminGoogleLogin();
         });
     }
-
-    const onEnterLogin = (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            handleAdminLogin();
-        }
-    };
-
-    if (emailInput) emailInput.addEventListener('keydown', onEnterLogin);
-    if (passwordInput) passwordInput.addEventListener('keydown', onEnterLogin);
 }
 
 /**
@@ -129,65 +116,75 @@ function subscribeToLiveMessages() {
 }
 
 /**
- * Handle admin login
+ * Handle admin login via Google (only allowed method for admin)
  */
-function handleAdminLogin() {
-    const email = document.getElementById('adminEmail').value.trim();
-    const password = document.getElementById('adminPassword').value;
-
-    let hasErrors = false;
-
-    if (!email) {
-        showToast('Please enter admin email');
-        hasErrors = true;
-    }
-
-    if (!password) {
-        showToast('Please enter admin password');
-        hasErrors = true;
-    }
-
-    if (hasErrors) return;
-
-    // Get all users
-    const users = getAllUsers();
-    
-    // Find user by email
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-    if (!user) {
-        showToast('Admin credentials not found');
+function handleAdminGoogleLogin() {
+    if (!isFirebaseReady()) {
+        showToast('Google login requires Firebase configuration. Add your Firebase config and enable Google provider.');
         return;
     }
 
-    // Verify password
-    const passwordHash = hashPassword(password);
-    if (user.passwordHash !== passwordHash) {
-        showToast('Invalid email or password');
+    if (!isProtocolSupportedForFirebaseAuth()) {
+        showToast('Google login requires running this app on http://localhost or https://.');
         return;
     }
 
-    // Check if admin
-    if (!user.isAdmin) {
-        showToast('You do not have admin access');
-        return;
-    }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
 
-    // Login successful
-    const sessionUser = {
-        id: user.id,
-        fullname: user.fullname,
-        email: user.email,
-        isAdmin: true,
-        loginTime: new Date().toISOString()
-    };
+    firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+            const firebaseUser = result && result.user ? result.user : null;
+            const email = firebaseUser && firebaseUser.email ? firebaseUser.email : '';
 
-    localStorage.setItem('growthlock_currentUser', JSON.stringify(sessionUser));
-    showToast('✓ Admin login successful');
-    
-    setTimeout(() => {
-        showAdminDashboard();
-    }, 1000);
+            if (!email) {
+                showToast('Google sign-in failed: no email provided.');
+                firebase.auth().signOut();
+                return;
+            }
+
+            // Verify admin status before creating or updating any local record
+            const existingUser = getAllUsers().find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+            if (!existingUser || !existingUser.isAdmin) {
+                showToast('Access denied: this Google account does not have admin privileges.');
+                firebase.auth().signOut();
+                return;
+            }
+
+            const localUser = upsertLocalSocialUser(firebaseUser, 'google', email);
+
+            const sessionUser = {
+                id: localUser.id,
+                fullname: localUser.fullname,
+                email: localUser.email,
+                profilePic: localUser.profilePic || null,
+                isAdmin: true,
+                loginTime: new Date().toISOString(),
+                provider: 'google'
+            };
+
+            localStorage.setItem('growthlock_currentUser', JSON.stringify(sessionUser));
+            showToast('✓ Admin login successful');
+
+            setTimeout(() => {
+                showAdminDashboard();
+            }, 1000);
+        })
+        .catch((error) => {
+            if (isUnsupportedAuthEnvironment(error)) {
+                showToast('Google login is not supported in this browser context. Open the app from http://localhost or an https URL.');
+                return;
+            }
+            if (isProviderDisabledError(error)) {
+                showToast('Google sign-in is disabled. Enable it in Firebase Console > Authentication > Sign-in method.');
+                return;
+            }
+            if (isInvalidCredentialError(error)) {
+                showToast('Google sign-in failed due to an invalid credential. Try again.');
+                return;
+            }
+            showToast(error.message || 'Google login failed.');
+        });
 }
 
 /**
