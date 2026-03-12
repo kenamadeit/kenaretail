@@ -17,29 +17,90 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Ensure login works via button click and Enter key
+ * Attach Google login button handler
  */
 function setupAdminLoginHandlers() {
-    const loginButton = document.querySelector('#adminLoginContainer .submit-btn');
-    const emailInput = document.getElementById('adminEmail');
-    const passwordInput = document.getElementById('adminPassword');
+    const googleBtn = document.getElementById('adminGoogleLoginBtn');
+    if (googleBtn && googleBtn.dataset.bound !== 'true') {
+        googleBtn.dataset.bound = 'true';
+        googleBtn.addEventListener('click', handleAdminGoogleLogin);
+    }
+}
 
-    if (loginButton) {
-        loginButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            handleAdminLogin();
-        });
+/**
+ * Sign in as admin with Google via Firebase
+ */
+function handleAdminGoogleLogin() {
+    const errorEl = document.getElementById('adminLoginError');
+    if (errorEl) errorEl.style.display = 'none';
+
+    if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
+        showToast('Google login requires Firebase configuration.');
+        return;
     }
 
-    const onEnterLogin = (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            handleAdminLogin();
-        }
-    };
+    const protocol = window.location.protocol;
+    if (protocol !== 'http:' && protocol !== 'https:') {
+        showAdminLoginError('Google login requires running on http or https (not file://).');
+        return;
+    }
 
-    if (emailInput) emailInput.addEventListener('keydown', onEnterLogin);
-    if (passwordInput) passwordInput.addEventListener('keydown', onEnterLogin);
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+            const firebaseUser = result && result.user ? result.user : null;
+            if (!firebaseUser || !firebaseUser.email) {
+                showAdminLoginError('Sign in failed: no email was provided by Google.');
+                return;
+            }
+
+            const users = getAllUsers();
+            const user = users.find(u => u.email && u.email.toLowerCase() === firebaseUser.email.toLowerCase());
+
+            if (!user || !user.isAdmin) {
+                firebase.auth().signOut();
+                showAdminLoginError('Access denied. This Google account does not have admin privileges.');
+                return;
+            }
+
+            const sessionUser = {
+                id: user.id,
+                fullname: user.fullname || firebaseUser.displayName || 'Admin',
+                email: user.email,
+                profilePic: firebaseUser.photoURL || null,
+                isAdmin: true,
+                loginTime: new Date().toISOString(),
+                provider: 'google'
+            };
+
+            localStorage.setItem('growthlock_currentUser', JSON.stringify(sessionUser));
+            showToast('✓ Admin login successful');
+
+            setTimeout(() => {
+                showAdminDashboard();
+            }, 1000);
+        })
+        .catch((error) => {
+            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                return;
+            }
+            showAdminLoginError(error.message || 'Google sign-in failed.');
+        });
+}
+
+/**
+ * Show an error message in the admin login card
+ */
+function showAdminLoginError(message) {
+    const errorEl = document.getElementById('adminLoginError');
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+    } else {
+        showToast(message);
+    }
 }
 
 /**
@@ -126,68 +187,6 @@ function subscribeToLiveMessages() {
         console.error('Admin live message subscription failed:', error);
         showToast('Live messages unavailable. Check Firebase Database rules/config.');
     });
-}
-
-/**
- * Handle admin login
- */
-function handleAdminLogin() {
-    const email = document.getElementById('adminEmail').value.trim();
-    const password = document.getElementById('adminPassword').value;
-
-    let hasErrors = false;
-
-    if (!email) {
-        showToast('Please enter admin email');
-        hasErrors = true;
-    }
-
-    if (!password) {
-        showToast('Please enter admin password');
-        hasErrors = true;
-    }
-
-    if (hasErrors) return;
-
-    // Get all users
-    const users = getAllUsers();
-    
-    // Find user by email
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-    if (!user) {
-        showToast('Admin credentials not found');
-        return;
-    }
-
-    // Verify password
-    const passwordHash = hashPassword(password);
-    if (user.passwordHash !== passwordHash) {
-        showToast('Invalid email or password');
-        return;
-    }
-
-    // Check if admin
-    if (!user.isAdmin) {
-        showToast('You do not have admin access');
-        return;
-    }
-
-    // Login successful
-    const sessionUser = {
-        id: user.id,
-        fullname: user.fullname,
-        email: user.email,
-        isAdmin: true,
-        loginTime: new Date().toISOString()
-    };
-
-    localStorage.setItem('growthlock_currentUser', JSON.stringify(sessionUser));
-    showToast('✓ Admin login successful');
-    
-    setTimeout(() => {
-        showAdminDashboard();
-    }, 1000);
 }
 
 /**
