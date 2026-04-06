@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - GrowthLock</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-page">
+    <div class="admin-bg-shape admin-bg-shape-1" aria-hidden="true"></div>
+    <div class="admin-bg-shape admin-bg-shape-2" aria-hidden="true"></div>
+
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <div>
+                <p class="admin-kicker">GrowthLock</p>
+                <h1>Admin Dashboard</h1>
+            </div>
+            <div class="admin-header-right">
+                <span id="adminWelcome">Welcome, Admin!</span>
+                <button class="logout-btn" onclick="handleAdminLogout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-container">
+        <section class="glass-card admin-login-card" id="adminLoginContainer">
+            <h2>Admin Login</h2>
+            <p class="login-subtitle">Sign in to manage clients, activity, purchases, and progress photos.</p>
+
+            <div class="form-group">
+                <label for="adminEmail">Admin Email</label>
+                <input type="email" id="adminEmail" placeholder="Enter admin email" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="adminPassword">Admin Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password" autocomplete="current-password">
+            </div>
+
+            <button class="submit-btn admin-login-btn" type="button">Login as Admin</button>
+        </section>
+
+        <div id="adminDashboard" style="display: none;">
+            <section class="glass-card stats-overview">
+                <div class="section-topline">
+                    <h2>Overview</h2>
+                    <p>Live account and revenue status.</p>
+                </div>
+                <div class="stats-grid">
+                    <article class="stat-box">
+                        <div class="stat-number" id="totalClients">0</div>
+                        <div class="stat-label">Total Clients</div>
+                    </article>
+                    <article class="stat-box">
+                        <div class="stat-number" id="activeClients">0</div>
+                        <div class="stat-label">Active Users</div>
+                    </article>
+                    <article class="stat-box">
+                        <div class="stat-number" id="totalPurchases">0</div>
+                        <div class="stat-label">Total Purchases</div>
+                    </article>
+                    <article class="stat-box">
+                        <div class="stat-number" id="totalRevenue">$0</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="glass-card controls-card">
+                <div class="section-topline">
+                    <h2>Search Clients</h2>
+                    <p>Find clients by name, email, and status.</p>
+                </div>
+                <div class="search-container">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search by name or email..."
+                        onkeyup="filterClients()"
+                    >
+                    <select id="filterStatus" onchange="filterClients()">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </section>
+
+            <section class="glass-card table-card">
+                <div class="section-topline">
+                    <h2>Manage Clients</h2>
+                    <p>Review each client profile and history.</p>
+                </div>
+                <div class="table-container">
+                    <table class="clients-table" id="clientsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Registration Date</th>
+                                <th>Purchases</th>
+                                <th>Status</th>
+                                <th>Photos</th>
+                                <th>Messages</th>
+                                <th>Progress</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientsTableBody"></tbody>
+                    </table>
+                    <p id="noClientsMessage">No clients found</p>
+                </div>
+            </section>
+        </div>
+
+        <div class="modal" id="clientModal">
+            <div class="modal-content glass-card">
+                <button class="close" onclick="closeClientModal()" aria-label="Close">&times;</button>
+                <h2 id="modalTitle">Client Details</h2>
+
+                <div class="modal-section">
+                    <h3>Personal Information</h3>
+                    <div class="info-grid">
+                        <div>
+                            <label>Name</label>
+                            <p id="modalName"></p>
+                        </div>
+                        <div>
+                            <label>Email</label>
+                            <p id="modalEmail"></p>
+                        </div>
+                        <div>
+                            <label>Registration Date</label>
+                            <p id="modalRegDate"></p>
+                        </div>
+                        <div>
+                            <label>Status</label>
+                            <p id="modalStatus"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Linked Account Data</h3>
+                    <div class="info-grid">
+                        <div>
+                            <label>Last Login</label>
+                            <p id="modalLastLogin"></p>
+                        </div>
+                        <div>
+                            <label>Messages</label>
+                            <p id="modalMessageCount"></p>
+                        </div>
+                        <div>
+                            <label>Notification Times</label>
+                            <p id="modalNotificationTimes"></p>
+                        </div>
+                        <div>
+                            <label>Profile Picture</label>
+                            <p id="modalProfilePicStatus"></p>
+                        </div>
+                        <div>
+                            <label>Progress Days</label>
+                            <p id="modalProgressDays"></p>
+                        </div>
+                        <div>
+                            <label>Photo Timeline</label>
+                            <p id="modalPhotoTimeline"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Profile Picture</h3>
+                    <div class="profile-picture-wrap">
+                        <img id="modalProfilePic" alt="Client profile picture">
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Client Messages</h3>
+                    <div id="clientMessagesThread"></div>
+                    <p id="noClientMessagesMessage">No messages yet</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Purchase History</h3>
+                    <div id="purchaseHistory"></div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Progress Photos</h3>
+                    <div id="progressPhotos"></div>
+                    <p id="noPhotosMessage">No photos uploaded yet</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Client Notes</h3>
+                    <textarea id="clientNotes" placeholder="Add notes about this client..."></textarea>
+                    <button class="submit-btn modal-note-save" onclick="saveClientNotes()">Save Notes</button>
+                </div>
+
+                <button class="submit-btn modal-close-btn" onclick="closeClientModal()">Close</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-notification" id="toast"></div>
+    <button class="reset-admin-fab" onclick="clearAllUsersAndReload()">Reset Admin</button>
+
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        function clearAllUsersAndReload() {
+            if (confirm('This will remove all users and reset admin. Continue?')) {
+                localStorage.removeItem('growthlock_users');
+                localStorage.removeItem('growthlock_currentUser');
+                location.reload();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            const users = JSON.parse(localStorage.getItem('growthlock_users') || '[]');
+            const hasAdmin = users.some(u => u.isAdmin);
+
+            if (!hasAdmin && typeof hashPassword === 'function') {
+                users.push({
+                    id: Date.now().toString(),
+                    fullname: 'Admin',
+                    email: 'admin@growthlock.com',
+                    passwordHash: hashPassword('Admin1234'),
+                    isAdmin: true,
+                    createdAt: new Date().toISOString(),
+                    purchases: [],
+                    preferences: { newsletter: false, notifications: true }
+                });
+                localStorage.setItem('growthlock_users', JSON.stringify(users));
+                console.log('Default admin user created: admin@growthlock.com / Admin1234');
+            }
+        });
+    </script>
+</body>
+</html>

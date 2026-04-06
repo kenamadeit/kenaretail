@@ -1,0 +1,893 @@
+/* ======================================
+   GROWTHLOCK - iOS 26 Inspired Design
+   Modern Glassy UI with Sea Blue Theme
+   Mobile-First, Production-Ready
+   ====================================== */
+
+/* ======================================
+   1. GLOBAL & RESET STYLES
+   ====================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  /* Primary sea blue gradient background */
+  background: linear-gradient(135deg, #0a3d62 0%, #0f5a8a 50%, #1a7fa0 100%);
+  min-height: 100vh;
+  
+  /* Typography */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Display', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #fff;
+  
+  /* Smooth transitions */
+  transition: background 0.5s ease;
+  
+  /* Mobile optimization */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ======================================
+   2. HEADER STYLES
+   ====================================== */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  
+  background: rgba(10, 61, 98, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  
+  padding: 16px 20px;
+  text-align: center;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  animation: fadeInDown 0.6s ease;
+}
+
+.header-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #00d4ff, #0099ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+
+.header-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.user-header {
+  margin-top: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}
+
+/* ======================================
+   HEADER NAVIGATION LINKS
+   ====================================== */
+
+.header-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.nav-link {
+  color: #00d4ff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  padding: 8px 16px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 6px;
+}
+
+.nav-link.admin {
+  background: rgba(255, 200, 100, 0.1);
+  border-color: rgba(255, 200, 100, 0.3);
+  color: rgba(255, 200, 100, 1);
+}
+
+.nav-link:hover {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: rgba(0, 212, 255, 0.5);
+}
+
+.logout-small-btn {
+  padding: 8px 16px;
+  background: rgba(244, 67, 54, 0.8);
+  border: 1px solid rgba(244, 67, 54, 0.9);
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.logout-small-btn:hover {
+  background: rgba(244, 67, 54, 1);
+  box-shadow: 0 0 15px rgba(244, 67, 54, 0.4);
+}
+
+/* ======================================
+   3. MAIN CONTAINER
+   ====================================== */
+
+.app-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 40px;
+}
+
+/* ======================================
+   4. GLASSY CARD STYLES
+   ====================================== */
+
+.glass-card {
+  /* Frosted glass effect */
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  
+  /* Borders and shadows */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  
+  /* Spacing */
+  padding: 24px;
+  margin-bottom: 16px;
+  
+  /* Animations */
+  animation: slideInUp 0.5s ease;
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* ======================================
+   5. CARD HEADER STYLES
+   ====================================== */
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.date-badge {
+  background: rgba(0, 212, 255, 0.2);
+  color: #00d4ff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+/* ======================================
+   6. TODAY'S ROUTINE SECTION
+   ====================================== */
+
+.routine-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.routine-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.routine-status {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+/* ======================================
+   7. ACTION BUTTONS - PRIMARY
+   ====================================== */
+
+.action-btn {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  
+  /* Appearance */
+  width: 100%;
+  padding: 16px 12px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(0, 150, 255, 0.3), rgba(0, 100, 200, 0.2));
+  border: 1.5px solid rgba(0, 200, 255, 0.3);
+  
+  /* Text */
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  
+  /* Interaction */
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Mobile optimization */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-label {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.btn-frequency {
+  font-size: 10px;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* Button Hover State */
+.action-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 180, 255, 0.4), rgba(0, 130, 220, 0.3));
+  border-color: rgba(0, 212, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 150, 255, 0.3);
+}
+
+/* Button Active/Tap State - BLINK EFFECT */
+.action-btn:active {
+  animation: buttonBlink 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.5), rgba(0, 180, 255, 0.4));
+  border-color: rgba(0, 255, 255, 0.8);
+  box-shadow: 
+    0 0 20px rgba(0, 212, 255, 0.6),
+    0 0 40px rgba(0, 150, 255, 0.3),
+    inset 0 0 10px rgba(255, 255, 255, 0.1);
+  transform: scale(0.98);
+}
+
+/* Button Confirmed State */
+.action-btn.confirmed {
+  animation: confirmPulse 0.6s ease;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(56, 142, 60, 0.3));
+  border-color: rgba(129, 199, 132, 0.6);
+  box-shadow: 
+    0 0 15px rgba(76, 175, 80, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.action-btn.confirmed::before {
+  content: "✓";
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  animation: confirmCheckmark 0.6s ease forwards;
+}
+
+/* ======================================
+   8. PROGRESS SECTION
+   ====================================== */
+
+.progress-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.progress-item {
+  text-align: center;
+  padding: 16px;
+  background: rgba(0, 150, 255, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.progress-item:hover {
+  background: rgba(0, 150, 255, 0.15);
+  border-color: rgba(0, 200, 255, 0.3);
+}
+
+.progress-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.progress-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #00d4ff;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.progress-unit {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progress-bar-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.progress-bar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00d4ff, #0099ff);
+  border-radius: 10px;
+  width: 0%;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
+}
+
+.progress-bar-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 6px;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* ======================================
+   9. WEEKLY OVERVIEW SECTION
+   ====================================== */
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 150, 255, 0.15);
+  border: 1.5px solid rgba(0, 200, 255, 0.2);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 8px;
+}
+
+.day-cell:hover {
+  background: rgba(0, 150, 255, 0.25);
+  border-color: rgba(0, 212, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.day-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+.day-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.day-cell.completed .day-indicator {
+  background: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+/* ======================================
+   10. CUSTOM ROUTINES SECTION
+   ====================================== */
+
+.custom-routine-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.input-field {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.input-field:focus {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 12px rgba(0, 150, 255, 0.2);
+}
+
+.input-field::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.add-routine-btn {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.3), rgba(0, 150, 255, 0.2));
+  border: 1.5px solid rgba(0, 212, 255, 0.4);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-routine-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.4), rgba(0, 180, 255, 0.3));
+  border-color: rgba(0, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+.add-routine-btn:active {
+  animation: buttonBlink 0.4s ease;
+  transform: scale(0.98);
+}
+
+.custom-routines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-routine-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(0, 150, 255, 0.1);
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.custom-routine-item:hover {
+  background: rgba(0, 150, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.routine-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.routine-frequency {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 200, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.delete-routine-btn {
+  background: rgba(244, 67, 54, 0.3);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  color: #ff6b6b;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-routine-btn:hover {
+  background: rgba(244, 67, 54, 0.5);
+  border-color: rgba(244, 67, 54, 0.6);
+}
+
+/* ======================================
+   11. REMINDERS SECTION
+   ====================================== */
+
+.reminder-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reminder-item {
+  padding: 12px 16px;
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid #ffc107;
+  border-radius: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  animation: slideInLeft 0.4s ease;
+  transition: all 0.3s ease;
+}
+
+.reminder-item:hover {
+  background: rgba(255, 193, 7, 0.15);
+  transform: translateX(4px);
+}
+
+.reminder-empty {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+/* ======================================
+   12. STATS SECTION
+   ====================================== */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.stat-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(0, 150, 255, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  background: rgba(0, 150, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.stat-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #00d4ff;
+  margin-top: 2px;
+}
+
+/* ======================================
+   13. ACTION BUTTONS - BOTTOM
+   ====================================== */
+
+.actions-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.action-bottom-btn {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #fff;
+}
+
+.reset-btn {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.3), rgba(211, 47, 47, 0.2));
+  border: 1.5px solid rgba(244, 67, 54, 0.3);
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.4), rgba(211, 47, 47, 0.3));
+  border-color: rgba(244, 67, 54, 0.5);
+  box-shadow: 0 0 15px rgba(244, 67, 54, 0.3);
+}
+
+.export-btn {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(56, 142, 60, 0.2));
+  border: 1.5px solid rgba(76, 175, 80, 0.3);
+}
+
+.export-btn:hover {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(56, 142, 60, 0.3));
+  border-color: rgba(76, 175, 80, 0.5);
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+}
+
+/* ======================================
+   14. TOAST NOTIFICATIONS
+   ====================================== */
+
+.toast-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 2000;
+  max-width: 300px;
+}
+
+.toast-notification.show {
+  animation: toastSlideIn 0.4s ease forwards;
+}
+
+/* ======================================
+   15. ANIMATIONS
+   ====================================== */
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes buttonBlink {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes confirmPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+@keyframes confirmCheckmark {
+  from {
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ======================================
+   16. RESPONSIVE DESIGN
+   ====================================== */
+
+/* Small devices (320px and up) */
+@media (max-width: 375px) {
+  .app-container {
+    padding: 16px;
+  }
+
+  .glass-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .header-title {
+    font-size: 24px;
+  }
+
+  .routine-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-btn {
+    padding: 14px 10px;
+    font-size: 13px;
+  }
+
+  .toast-notification {
+    right: 10px;
+    left: 10px;
+  }
+}
+
+/* Medium devices (768px and up) */
+@media (min-width: 768px) {
+  .routine-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .progress-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Large devices (1024px and up) */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 800px;
+  }
+}
+@media (max-width: 600px) {
+  .glass-card {
+    margin: 10px;
+    padding: 15px;
+  }
+  .action-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+}

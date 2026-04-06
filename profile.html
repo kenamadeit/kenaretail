@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - GrowthLock</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+    .fancy-btn {
+        background: linear-gradient(135deg, #00d4ff 0%, #1a7fa0 100%);
+        color: #fff;
+        font-weight: 700;
+        border: none;
+        border-radius: 16px;
+        padding: 14px 38px;
+        font-size: 18px;
+        box-shadow: 0 4px 24px rgba(0,212,255,0.18);
+        backdrop-filter: blur(8px);
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        margin: 8px 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: 0.5px;
+    }
+    .fancy-btn:hover {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 8px 32px rgba(0,212,255,0.28);
+        background: linear-gradient(135deg, #0099ff 0%, #00d4ff 100%);
+    }
+
+    /* Stylish time input */
+    input[type="time"] {
+        background: rgba(0,212,255,0.08);
+        border: 1.5px solid #00d4ff;
+        border-radius: 10px;
+        color: #1a7fa0;
+        font-size: 16px;
+        padding: 8px 16px;
+        margin: 0 4px 10px 0;
+        outline: none;
+        box-shadow: 0 2px 8px rgba(0,212,255,0.08);
+        transition: border 0.2s, box-shadow 0.2s;
+    }
+    input[type="time"]:focus {
+        border: 2px solid #1a7fa0;
+        box-shadow: 0 4px 16px rgba(0,212,255,0.18);
+    }
+
+    /* Stylish save button for reminders */
+    #saveNotifBtn {
+        background: linear-gradient(135deg, #00d4ff 0%, #1a7fa0 100%);
+        color: #fff;
+        font-weight: 700;
+        border: none;
+        border-radius: 14px;
+        padding: 12px 32px;
+        font-size: 17px;
+        box-shadow: 0 2px 12px rgba(0,212,255,0.14);
+        transition: transform 0.18s, box-shadow 0.18s;
+        cursor: pointer;
+        margin-top: 15px;
+    }
+    #saveNotifBtn:hover {
+        transform: translateY(-1px) scale(1.03);
+        box-shadow: 0 6px 24px rgba(0,212,255,0.22);
+        background: linear-gradient(135deg, #0099ff 0%, #00d4ff 100%);
+    }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="header-title">👤 Your Profile</h1>
+            <p class="header-subtitle">Manage account & reminders</p>
+            <div id="user-header" class="user-header"></div>
+        </div>
+        <div class="header-nav" id="header-nav">
+            <a href="index.html" class="nav-link">← Dashboard</a>
+            <button class="logout-small-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </header>
+
+    <!-- Main container -->
+    <main class="app-container">
+        <!-- Profile Picture Section -->
+        <section class="glass-card">
+            <h2 class="card-title">📷 Profile Picture</h2>
+            <div style="text-align: center;">
+                <div id="profilePicDisplay" style="margin: 20px 0;">
+                    <img id="profilePicImg" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(0,212,255,0.3);">
+                </div>
+                <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
+                <button class="fancy-btn" onclick="document.getElementById('profilePicInput').click()">🖼️ Change Picture</button>
+                <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">JPG, PNG, GIF (max 5MB)</p>
+            </div>
+        </section>
+
+        <!-- Summary card -->
+        <section class="glass-card">
+            <h2 class="card-title">Account Details</h2>
+            <p><strong>Name:</strong> <span id="profileName"></span></p>
+            <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        </section>
+
+        <!-- Stats card -->
+        <section class="glass-card">
+            <h2 class="card-title">📊 Your Stats</h2>
+            <div class="stats-mini">
+                <div class="stat-mini-item">
+                    <div class="stat-mini-number" id="statStreak">0</div>
+                    <div class="stat-mini-label">Current Streak</div>
+                </div>
+                <div class="stat-mini-item">
+                    <div class="stat-mini-number" id="statWeekly">0%</div>
+                    <div class="stat-mini-label">Weekly Consistency</div>
+                </div>
+                <div class="stat-mini-item">
+                    <div class="stat-mini-number" id="statTotal">0</div>
+                    <div class="stat-mini-label">Days Tracked</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notification settings card -->
+        <section class="glass-card">
+            <h2 class="card-title">🔔 Reminder Times</h2>
+            <p>Select two times each day for reminders:</p>
+            <input type="time" id="notifyTime1">
+            <input type="time" id="notifyTime2" style="margin-left: 10px;">
+            <button class="submit-btn" id="saveNotifBtn" style="margin-top: 15px;">Save</button>
+        </section>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-storage-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+    <script src="profile.js"></script>
+</body>
+</body>
+</html>
