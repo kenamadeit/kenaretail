@@ -29,10 +29,27 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Prepare deploy folder
+        run: |
+          mkdir -p dist
+          find . -maxdepth 1 -type f \(
+            -name "*.html" -o
+            -name "*.css" -o
+            -name "*.js" -o
+            -name "*.webmanifest" -o
+            -name "*.png" -o
+            -name "*.jpg" -o
+            -name "*.jpeg" -o
+            -name "*.gif" -o
+            -name "*.webp" -o
+            -name "*.svg" -o
+            -name "*.ico"
+          \) -exec cp {} dist/ \;
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
 
       - name: Deploy to GitHub Pages
         id: deployment
